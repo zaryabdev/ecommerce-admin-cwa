@@ -3,6 +3,7 @@
 import axios from "axios";
 import { MoreHorizontal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { toast } from "react-hot-toast";
 
 import {
@@ -12,49 +13,71 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import type { OrderColumn } from "./columns";
+import OrderDetailsModal from "./order-details-modal";
+
 interface CellActionProps {
-    data: {
-        id: string;
-        status: string;
-    };
+    data: OrderColumn;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     const router = useRouter();
     const params = useParams();
 
-    const onStatusChange = async (status: string) => {
-        try {
-            await axios.patch(`/api/${params.storeId}/orders/${data.id}`, {
-                status,
-            });
+    const [openDetails, setOpenDetails] = useState(false);
 
-            toast.success("Order updated.");
-            router.refresh();
-        } catch (error) {
-            toast.error("Something went wrong.");
-        }
-    };
+    const onStatusChange = useCallback(
+        async (status: string) => {
+            try {
+                await axios.patch(`/api/${params.storeId}/orders/${data.id}`, {
+                    status,
+                });
+                toast.success("Order updated.");
+                router.refresh();
+            } catch {
+                toast.error("Something went wrong.");
+            }
+        },
+        [data.id, params.storeId, router],
+    );
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button className="p-2">
-                    <MoreHorizontal className="w-4 h-4" />
-                </button>
-            </DropdownMenuTrigger>
+        <>
+            <OrderDetailsModal
+                open={openDetails}
+                onClose={() => setOpenDetails(false)}
+                order={data}
+            />
 
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onStatusChange("CONFIRMED")}>
-                    Mark Confirmed
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onStatusChange("DELIVERED")}>
-                    Mark Delivered
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onStatusChange("CANCELED")}>
-                    Cancel Order
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button className="p-2">
+                        <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setOpenDetails(true)}>
+                        View details
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                        onClick={() => onStatusChange("CONFIRMED")}
+                    >
+                        Mark Confirmed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => onStatusChange("DELIVERED")}
+                    >
+                        Mark Delivered
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => onStatusChange("CANCELED")}
+                    >
+                        Cancel Order
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     );
 };

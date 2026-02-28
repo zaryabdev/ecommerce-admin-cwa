@@ -12,18 +12,70 @@ export async function OPTIONS() {
     return NextResponse.json({}, { headers: corsHeaders });
 }
 
+type CreateOrderPayload = {
+    productIds: string[];
+    paymentMethod?: "COD" | "STRIPE";
+    customer?: {
+        name?: string;
+        phone?: string;
+        email?: string;
+    };
+    shipping?: {
+        line1?: string;
+        line2?: string;
+        city?: string;
+        postalCode?: string;
+        country?: string; // "PK"
+        notes?: string;
+    };
+    notes?: string;
+};
+
+function buildAddressString(payload: CreateOrderPayload) {
+    const parts: string[] = [];
+
+    const s = payload.shipping;
+    if (s?.line1) parts.push(s.line1);
+    if (s?.line2) parts.push(s.line2);
+
+    const cityLine = [s?.city, s?.postalCode].filter(Boolean).join(" ");
+    if (cityLine) parts.push(cityLine);
+
+    if (s?.country) parts.push(s.country);
+
+    // optional notes
+    const note = s?.notes || payload.notes;
+    if (note) parts.push(`Notes: ${note}`);
+
+    // optional customer name/email (until schema has real fields)
+    const c = payload.customer;
+    const identity = [c?.name, c?.email].filter(Boolean).join(" • ");
+    if (identity) parts.push(`Customer: ${identity}`);
+
+    return parts.join(", ");
+}
+
 export async function POST(
     req: Request,
     { params }: { params: { storeId: string } },
 ) {
     try {
-        const { productIds } = await req.json();
+        const payload = (await req.json()) as CreateOrderPayload;
 
-        if (!productIds || productIds.length === 0) {
+        const productIds = payload?.productIds ?? [];
+        if (!Array.isArray(productIds) || productIds.length === 0) {
             return new NextResponse("Product ids are required", {
                 status: 400,
             });
         }
+
+        // Optional: basic COD validation (keep minimal for now)
+        // If you want, make these required:
+        // - payload.customer.phone
+        // - payload.shipping.line1
+        // - payload.shipping.city
+        const phone = payload.customer?.phone?.trim() ?? "";
+        const address = buildAddressString(payload);
 
         const products = await prismadb.product.findMany({
             where: { id: { in: productIds } },
@@ -48,6 +100,11 @@ export async function POST(
                 paymentMethod: "COD",
                 trackingId,
                 isPaid: false,
+
+                // ✅ persist what schema supports today
+                phone,
+                address,
+
                 orderItems: {
                     create: productIds.map((productId: string) => ({
                         product: { connect: { id: productId } },
@@ -70,6 +127,9 @@ export async function POST(
                 trackingId,
                 status: order.status,
                 paymentMethod: order.paymentMethod,
+                // return back what UI needs
+                phone: order.phone,
+                address: order.address,
                 products: order.orderItems.map((item) => ({
                     id: item.product.id,
                     name: item.product.name,

@@ -85,14 +85,37 @@ model Order {
   paymentMethod PaymentMethod @default(STRIPE)
   trackingId    String        @unique
 
+  // payment flags
   isPaid        Boolean       @default(false)
+
+  // customer
+  customerName  String        @default("")
+  email         String        @default("")
   phone         String        @default("")
+
+  // shipping (structured)
+  addressLine1  String        @default("")
+  addressLine2  String        @default("")
+  city          String        @default("")
+  postalCode    String        @default("")
+  country       String        @default("PK")
+
+  // notes
+  customerNotes String        @default("")
+
+  // legacy field (keep for backwards compatibility)
+  // You can remove this later after you migrate UI fully.
   address       String        @default("")
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   @@index([storeId])
+  @@index([trackingId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([isPaid])
+  @@index([city])
 }
 
 

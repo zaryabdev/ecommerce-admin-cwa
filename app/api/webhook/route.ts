@@ -24,8 +24,10 @@ export async function POST(req: Request) {
     }
 
     const session = event.data.object as Stripe.Checkout.Session;
-    const address = session?.customer_details?.address;
+    const details = session?.customer_details;
+    const address = details?.address;
 
+    // Legacy single-string address (keep for old UI)
     const addressComponents = [
         address?.line1,
         address?.line2,
@@ -34,13 +36,9 @@ export async function POST(req: Request) {
         address?.postal_code,
         address?.country,
     ];
-
-    const addressString = addressComponents
-        .filter((c) => c !== null)
-        .join(", ");
+    const addressString = addressComponents.filter(Boolean).join(", ");
 
     if (event.type === "checkout.session.completed") {
-        // const order =  await prismadb.order.update({
         await prismadb.order.update({
             where: {
                 id: session?.metadata?.orderId,
@@ -48,28 +46,28 @@ export async function POST(req: Request) {
             data: {
                 isPaid: true,
                 status: "CONFIRMED",
+
+                // ✅ legacy
                 address: addressString,
-                phone: session?.customer_details?.phone || "",
+
+                // ✅ new structured fields
+                phone: details?.phone || "",
+                email: details?.email || "",
+                customerName: details?.name || "",
+
+                addressLine1: address?.line1 || "",
+                addressLine2: address?.line2 || "",
+                city: address?.city || "",
+                postalCode: address?.postal_code || "",
+                country: address?.country || "PK",
+
+                // optional: keep state if you later add it
+                // state: address?.state || "",
             },
             include: {
                 orderItems: true,
             },
         });
-
-        // const productIds = order.orderItems.map(
-        //     (orderItem) => orderItem.productId,
-        // );
-
-        // await prismadb.product.updateMany({
-        //     where: {
-        //         id: {
-        //             in: [...productIds],
-        //         },
-        //     },
-        //     data: {
-        //         isArchived: true,
-        //     },
-        // });
     }
 
     return new NextResponse(null, { status: 200 });

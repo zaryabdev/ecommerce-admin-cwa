@@ -5,10 +5,26 @@ import { CellAction } from "./cell-action";
 
 export type OrderColumn = {
     id: string;
+
+    trackingId: string;
+    isPaid: boolean;
+
+    customerName: string;
+    email: string;
     phone: string;
-    address: string;
+
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    postalCode: string;
+    country: string;
+    customerNotes: string;
+
+    shippingAddress: string;
+
     totalPrice: string;
     products: string;
+
     status: string;
     paymentMethod: string;
     createdAt: string;
@@ -16,20 +32,38 @@ export type OrderColumn = {
 
 export const columns: ColumnDef<OrderColumn>[] = [
     {
-        accessorKey: "products",
-        header: "Products",
+        accessorKey: "trackingId",
+        header: "Tracking",
+        cell: ({ row }) => (
+            <div className="font-mono text-xs">{row.original.trackingId}</div>
+        ),
+    },
+    {
+        accessorKey: "customerName",
+        header: "Customer",
+        cell: ({ row }) => (
+            <div className="min-w-[160px]">
+                <div className="text-sm font-medium text-gray-900">
+                    {row.original.customerName || "—"}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                    {row.original.email || "—"}
+                </div>
+            </div>
+        ),
     },
     {
         accessorKey: "phone",
         header: "Phone",
     },
     {
-        accessorKey: "address",
-        header: "Address",
+        accessorKey: "city",
+        header: "City",
+        cell: ({ row }) => row.original.city || "—",
     },
     {
         accessorKey: "totalPrice",
-        header: "Total price",
+        header: "Total",
     },
     {
         accessorKey: "paymentMethod",
@@ -38,6 +72,23 @@ export const columns: ColumnDef<OrderColumn>[] = [
     {
         accessorKey: "status",
         header: "Status",
+        cell: ({ row }) => {
+            const v = row.original.status;
+            return (
+                <div className="flex items-center gap-2">
+                    <span className="text-sm">{v}</span>
+                    {row.original.isPaid ? (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+                            Paid
+                        </span>
+                    ) : (
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            Unpaid
+                        </span>
+                    )}
+                </div>
+            );
+        },
     },
     {
         id: "actions",

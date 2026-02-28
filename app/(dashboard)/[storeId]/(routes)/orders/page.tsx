@@ -6,11 +6,21 @@ import { formatter } from "@/lib/utils";
 import { OrderClient } from "./components/client";
 import { OrderColumn } from "./components/columns";
 
+function buildShippingAddress(o: any) {
+    const parts = [
+        o.addressLine1,
+        o.addressLine2,
+        [o.city, o.postalCode].filter(Boolean).join(" "),
+        o.country,
+    ].filter(Boolean);
+
+    const formatted = parts.join(", ");
+    return formatted || o.address || "";
+}
+
 const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
     const orders = await prismadb.order.findMany({
-        where: {
-            storeId: params.storeId,
-        },
+        where: { storeId: params.storeId },
         include: {
             orderItems: {
                 include: {
@@ -18,23 +28,37 @@ const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
                 },
             },
         },
-        orderBy: {
-            createdAt: "desc",
-        },
+        orderBy: { createdAt: "desc" },
     });
 
     const formattedOrders: OrderColumn[] = orders.map((item) => ({
         id: item.id,
-        phone: item.phone,
-        address: item.address,
-        products: item.orderItems
-            .map((orderItem) => orderItem.product.name)
-            .join(", "),
+
+        trackingId: item.trackingId,
+        isPaid: item.isPaid,
+
+        customerName: item.customerName ?? "",
+        email: item.email ?? "",
+        phone: item.phone ?? "",
+
+        addressLine1: item.addressLine1 ?? "",
+        addressLine2: item.addressLine2 ?? "",
+        city: item.city ?? "",
+        postalCode: item.postalCode ?? "",
+        country: item.country ?? "PK",
+        customerNotes: item.customerNotes ?? "",
+
+        // handy display string (for table & modal)
+        shippingAddress: buildShippingAddress(item),
+
+        products: item.orderItems.map((oi) => oi.product.name).join(", "),
         totalPrice: formatter.format(
-            item.orderItems.reduce((total, item) => {
-                return total + Number(item.product.price);
-            }, 0),
+            item.orderItems.reduce(
+                (total, oi) => total + Number(oi.product.price),
+                0,
+            ),
         ),
+
         status: item.status,
         paymentMethod: item.paymentMethod,
         createdAt: format(item.createdAt, "MMMM do, yyyy"),
