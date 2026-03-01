@@ -5,27 +5,49 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
     req: Request,
-    { params }: { params: { billboardId: string } },
+    { params }: { params: { storeId: string } },
 ) {
     try {
-        if (!params.billboardId) {
-            return new NextResponse("Billboard id is required", {
-                status: 400,
-            });
+        if (!params.storeId) {
+            return new NextResponse("Store id is required", { status: 400 });
         }
 
-        const billboard = await prismadb.billboard.findFirst({
+        const billboards = await prismadb.billboard.findFirst({
             where: {
-                storeId: params.billboardId,
+                storeId: params.storeId,
             },
         });
 
-        return NextResponse.json(billboard);
+        return NextResponse.json(billboards);
     } catch (error) {
-        console.log("[BILLBOARD_GET]", error);
+        console.log("[BILLBOARDS_GET]", error);
         return new NextResponse("Internal error", { status: 500 });
     }
 }
+
+// export async function GET(
+//     req: Request,
+//     { params }: { params: { billboardId: string } },
+// ) {
+//     try {
+//         if (!params.billboardId) {
+//             return new NextResponse("Billboard id is required", {
+//                 status: 400,
+//             });
+//         }
+
+//         const billboard = await prismadb.billboard.findFirst({
+//             where: {
+//                 storeId: params.billboardId,
+//             },
+//         });
+
+//         return NextResponse.json(billboard);
+//     } catch (error) {
+//         console.log("[BILLBOARD_GET]", error);
+//         return new NextResponse("Internal error", { status: 500 });
+//     }
+// }
 
 export async function DELETE(
     req: Request,
