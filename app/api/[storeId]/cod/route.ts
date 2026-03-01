@@ -1,6 +1,5 @@
 import prismadb from "@/lib/prismadb";
 import { createTrackingId } from "@/lib/trackingId";
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 const corsHeaders = {
@@ -34,8 +33,8 @@ type CreateOrderPayload = {
 
 function buildAddressString(payload: CreateOrderPayload) {
     const parts: string[] = [];
-
     const s = payload.shipping;
+
     if (s?.line1) parts.push(s.line1);
     if (s?.line2) parts.push(s.line2);
 
@@ -43,15 +42,6 @@ function buildAddressString(payload: CreateOrderPayload) {
     if (cityLine) parts.push(cityLine);
 
     if (s?.country) parts.push(s.country);
-
-    // optional notes
-    const note = s?.notes || payload.notes;
-    if (note) parts.push(`Notes: ${note}`);
-
-    // optional customer name/email (until schema has real fields)
-    const c = payload.customer;
-    const identity = [c?.name, c?.email].filter(Boolean).join(" • ");
-    if (identity) parts.push(`Customer: ${identity}`);
 
     return parts.join(", ");
 }
@@ -70,14 +60,6 @@ export async function POST(
             });
         }
 
-        // Optional: basic COD validation (keep minimal for now)
-        // If you want, make these required:
-        // - payload.customer.phone
-        // - payload.shipping.line1
-        // - payload.shipping.city
-        const phone = payload.customer?.phone?.trim() ?? "";
-        const address = buildAddressString(payload);
-
         const products = await prismadb.product.findMany({
             where: { id: { in: productIds } },
             include: { size: true, color: true },
@@ -94,16 +76,47 @@ export async function POST(
 
         const trackingId = createTrackingId();
 
+        // ✅ normalize + fallbacks
+        const customerName = payload.customer?.name?.trim() ?? "";
+        const email = payload.customer?.email?.trim() ?? "";
+        const phone = payload.customer?.phone?.trim() ?? "";
+
+        const addressLine1 = payload.shipping?.line1?.trim() ?? "";
+        const addressLine2 = payload.shipping?.line2?.trim() ?? "";
+        const city = payload.shipping?.city?.trim() ?? "";
+        const postalCode = payload.shipping?.postalCode?.trim() ?? "";
+        const country = (payload.shipping?.country?.trim() ?? "PK") || "PK";
+
+        const customerNotes = (
+            payload.shipping?.notes ??
+            payload.notes ??
+            ""
+        ).trim();
+
+        // keep this for backward compatibility / display
+        const address = buildAddressString(payload);
+
         const order = await prismadb.order.create({
             data: {
                 storeId: params.storeId,
                 status: "DRAFT",
-                paymentMethod: "COD",
+                paymentMethod: payload.paymentMethod ?? "COD",
                 trackingId,
                 isPaid: false,
 
-                // ✅ persist what schema supports today
+                // ✅ NEW: persist to actual columns
+                customerName,
+                email,
                 phone,
+
+                addressLine1,
+                addressLine2,
+                city,
+                postalCode,
+                country,
+                customerNotes,
+
+                // optional legacy display field
                 address,
 
                 orderItems: {
@@ -128,9 +141,22 @@ export async function POST(
                 trackingId,
                 status: order.status,
                 paymentMethod: order.paymentMethod,
-                // return back what UI needs
+
+                // ✅ return the structured fields too
+                customerName: order.customerName,
+                email: order.email,
                 phone: order.phone,
+
+                addressLine1: order.addressLine1,
+                addressLine2: order.addressLine2,
+                city: order.city,
+                postalCode: order.postalCode,
+                country: order.country,
+                customerNotes: order.customerNotes,
+
+                // keep old one if your UI still uses it
                 address: order.address,
+
                 products: order.orderItems.map((item) => ({
                     id: item.product.id,
                     name: item.product.name,
@@ -139,14 +165,13 @@ export async function POST(
                     color: item.product.color,
                 })),
                 totalPrice,
-                store: {
-                    id: order.store.id,
-                    name: order.store.name,
-                },
+                store: { id: order.store.id, name: order.store.name },
             },
             { headers: corsHeaders },
         );
     } catch (error: any) {
-        return new NextResponse(error.message, { status: 500 });
+        return new NextResponse(error.message ?? "Server error", {
+            status: 500,
+        });
     }
 }
