@@ -1,4 +1,5 @@
 import prismadb from "@/lib/prismadb";
+import { createTrackingId } from "@/lib/trackingId";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
@@ -91,7 +92,7 @@ export async function POST(
             0,
         );
 
-        const trackingId = randomUUID().replace(/-/g, "").slice(0, 12);
+        const trackingId = createTrackingId();
 
         const order = await prismadb.order.create({
             data: {
