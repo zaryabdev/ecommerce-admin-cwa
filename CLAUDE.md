@@ -10,7 +10,7 @@ This Next.js 13.4.5 App Router repository is simultaneously:
 - CMS/system of record
 - REST API backend for a separate Storefront repository
 
-Current backend stack: Prisma + PostgreSQL, Clerk, Stripe, Cloudinary.
+Current backend stack: Prisma + PostgreSQL, Clerk, Cloudinary.
 
 ## Working Rules
 
@@ -33,10 +33,6 @@ Current backend stack: Prisma + PostgreSQL, Clerk, Stripe, Cloudinary.
 
 ## Critical Flows
 
-Stripe:
-
-`Storefront -> /checkout -> DRAFT Order -> Stripe Checkout -> /api/webhook -> isPaid=true + CONFIRMED`
-
 COD:
 
 `Storefront -> /cod -> DRAFT COD Order -> immediate order/tracking response`
@@ -50,10 +46,8 @@ Do not silently fix these during unrelated tasks:
 - order-status PATCH is unauthenticated
 - billboard list GET is disabled
 - billboard-by-id GET is misimplemented
-- Stripe Checkout uses USD while other UI is PKR-oriented
 - COD does not normally set `isPaid=true`
 - tracking ID formats differ by payment path
-- stale README database instructions
 
 ## Validation
 

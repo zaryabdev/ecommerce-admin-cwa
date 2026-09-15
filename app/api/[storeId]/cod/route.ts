@@ -14,7 +14,7 @@ export async function OPTIONS() {
 
 type CreateOrderPayload = {
     productIds: string[];
-    paymentMethod?: "COD" | "STRIPE";
+    paymentMethod?: "COD";
     customer?: {
         name?: string;
         phone?: string;
@@ -100,7 +100,7 @@ export async function POST(
             data: {
                 storeId: params.storeId,
                 status: "DRAFT",
-                paymentMethod: payload.paymentMethod ?? "COD",
+                paymentMethod: "COD",
                 trackingId,
                 isPaid: false,
 

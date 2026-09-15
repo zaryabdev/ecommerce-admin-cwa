@@ -22,7 +22,7 @@ If documentation conflicts with source code, source code wins. The README is his
 - Prisma 4.16.x
 - PostgreSQL
 - Clerk
-- Stripe Checkout + webhooks
+- Cash-on-delivery ordering
 - Cloudinary
 - React Hook Form + Zod
 - Zustand for limited UI state
@@ -77,10 +77,6 @@ Public catalog GETs and public customer checkout/COD routes exist intentionally 
 
 There are two purchase paths:
 
-### Stripe
-
-Storefront -> `POST /api/[storeId]/checkout` -> DRAFT Order -> Stripe Checkout -> `/api/webhook` -> paid/CONFIRMED.
-
 ### COD
 
 Storefront -> `POST /api/[storeId]/cod` -> DRAFT COD Order returned immediately with tracking information.
@@ -93,7 +89,6 @@ Payment/order code is cross-repo and business-critical. When modifying it, trace
 - Order/OrderItem creation
 - tracking ID
 - status/isPaid behavior
-- Stripe webhook where relevant
 - Storefront response shape
 
 Never trust client-supplied prices.
@@ -105,7 +100,6 @@ These are known existing conditions, not permission to fix them during unrelated
 - unauthenticated order-status PATCH route
 - broken billboard-by-id behavior
 - disabled billboard list GET
-- Stripe currency is USD while project UI/COD orientation is PKR
 - COD has no normal code path that marks `isPaid=true`
 - no OrderItem quantity field
 - inconsistent Stripe vs COD tracking ID format
@@ -139,9 +133,6 @@ Expected Admin variables include:
 - `DATABASE_URL`
 - `DATABASE_URL_UNPOOLED`
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
-- `STRIPE_API_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `FRONTEND_STORE_URL`
 
 Never expose or commit secret values.
 
