@@ -1,6 +1,7 @@
 import prismadb from "@/lib/prismadb";
 import { createTrackingId } from "@/lib/trackingId";
 import { NextResponse } from "next/server";
+import { sendNewOrderNotification } from "@/lib/email/send-new-order-notification";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -134,6 +135,15 @@ export async function POST(
                 store: true,
             },
         });
+
+        try {
+            await sendNewOrderNotification({
+                ...order,
+                totalPrice,
+            });
+        } catch (notificationError) {
+            console.error("Order notification failed", notificationError);
+        }
 
         return NextResponse.json(
             {

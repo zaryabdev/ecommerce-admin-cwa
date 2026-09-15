@@ -253,6 +253,9 @@ The Admin UI's Settings page literally surfaces `${origin}/api/${storeId}` to th
 | `STRIPE_API_KEY` | Stripe secret key (`lib/stripe.ts`) |
 | `STRIPE_WEBHOOK_SECRET` | Verifies signatures on incoming Stripe webhook events |
 | `FRONTEND_STORE_URL` | Base URL of the separate storefront app; used to build Stripe Checkout `success_url`/`cancel_url` |
+| `RESEND_API_KEY` | Server-side Resend API key used for merchant order notifications |
+| `RESEND_FROM_EMAIL` | Verified Resend sender address for merchant order notifications |
+| `RESEND_TEST_RECIPIENT` | Optional development recipient override; when set, notifications are sent here instead of the Store owner's Clerk email |
 
 **Do not** commit or paste actual secret values into any file — none are present in the repo currently (confirmed no `.env*` files exist).
 

@@ -62,6 +62,12 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 
 DATABASE_URL=''
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=""
+
+# Order email notifications (Resend)
+RESEND_API_KEY=
+RESEND_FROM_EMAIL="Store Orders <onboarding@resend.dev>"
+# Optional development override; otherwise the Store owner's Clerk email is used.
+RESEND_TEST_RECIPIENT=
 ```
 
 ### Connect to PlanetScale and Push Prisma
