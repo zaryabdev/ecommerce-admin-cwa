@@ -9,29 +9,34 @@ datasource db {
 }
 
 model Store {
-  id         String      @id @default(uuid())
-  name       String
-  userId     String
-  logoUrl    String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  billboards Billboard[] @relation("StoreToBillboard")
-  categories Category[]  @relation("StoreToCategory")
-  colors     Color[]     @relation("StoreToColor")
-  orders     Order[]     @relation("StoreToOrder")
-  products   Product[]   @relation("StoreToProduct")
-  sizes      Size[]      @relation("StoreToSize")
+  id                  String      @id @default(uuid())
+  name                String
+  userId              String
+  logoUrl             String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  billboards          Billboard[] @relation("StoreToBillboard")
+  homepageBillboardId String?
+  homepageBillboard   Billboard?  @relation("StoreHomepageBillboard", fields: [homepageBillboardId], references: [id])
+  categories          Category[]  @relation("StoreToCategory")
+  colors              Color[]     @relation("StoreToColor")
+  orders              Order[]     @relation("StoreToOrder")
+  products            Product[]   @relation("StoreToProduct")
+  sizes               Size[]      @relation("StoreToSize")
+
+  @@index([homepageBillboardId])
 }
 
 model Billboard {
-  id         String     @id @default(uuid())
-  storeId    String
-  label      String
-  imageUrl   String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  store      Store      @relation("StoreToBillboard", fields: [storeId], references: [id])
-  categories Category[]
+  id                String     @id @default(uuid())
+  storeId           String
+  label             String
+  imageUrl          String
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  store             Store      @relation("StoreToBillboard", fields: [storeId], references: [id])
+  homepageForStores Store[]    @relation("StoreHomepageBillboard")
+  categories        Category[]
 
   @@index([storeId])
 }
@@ -77,39 +82,39 @@ model Product {
 }
 
 model Order {
-  id            String        @id @default(uuid())
-  storeId       String
-  store         Store         @relation("StoreToOrder", fields: [storeId], references: [id])
-  orderItems    OrderItem[]
+  id         String      @id @default(uuid())
+  storeId    String
+  store      Store       @relation("StoreToOrder", fields: [storeId], references: [id])
+  orderItems OrderItem[]
 
   status        OrderStatus   @default(DRAFT)
   paymentMethod PaymentMethod @default(COD)
   trackingId    String        @unique
 
   // payment flags
-  isPaid        Boolean       @default(false)
+  isPaid Boolean @default(false)
 
   // customer
-  customerName  String        @default("")
-  email         String        @default("")
-  phone         String        @default("")
+  customerName String @default("")
+  email        String @default("")
+  phone        String @default("")
 
   // shipping (structured)
-  addressLine1  String        @default("")
-  addressLine2  String        @default("")
-  city          String        @default("")
-  postalCode    String        @default("")
-  country       String        @default("PK")
+  addressLine1 String @default("")
+  addressLine2 String @default("")
+  city         String @default("")
+  postalCode   String @default("")
+  country      String @default("PK")
 
   // notes
-  customerNotes String        @default("")
+  customerNotes String @default("")
 
   // legacy field (keep for backwards compatibility)
   // You can remove this later after you migrate UI fully.
-  address       String        @default("")
+  address String @default("")
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([storeId])
   @@index([trackingId])
@@ -118,7 +123,6 @@ model Order {
   @@index([isPaid])
   @@index([city])
 }
-
 
 model OrderItem {
   id        String  @id @default(uuid())
@@ -167,7 +171,6 @@ model Image {
 
   @@index([productId])
 }
-
 
 enum OrderStatus {
   DRAFT
