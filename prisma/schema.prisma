@@ -83,7 +83,7 @@ model Order {
   orderItems    OrderItem[]
 
   status        OrderStatus   @default(DRAFT)
-  paymentMethod PaymentMethod @default(STRIPE)
+  paymentMethod PaymentMethod @default(COD)
   trackingId    String        @unique
 
   // payment flags
