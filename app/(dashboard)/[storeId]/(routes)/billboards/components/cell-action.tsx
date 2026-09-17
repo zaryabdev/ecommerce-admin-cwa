@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useState } from "react";
-import { Copy, Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Copy, Edit, ImageOff, ImagePlus, MoreHorizontal, Trash } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useParams, useRouter } from "next/navigation";
 
@@ -49,6 +49,21 @@ export const CellAction: React.FC<CellActionProps> = ({
     toast.success('Billboard ID copied to clipboard.');
   }
 
+  const onToggleHomepage = async () => {
+    try {
+      setLoading(true);
+      await axios.patch(`/api/${params.storeId}/homepage-billboard`, {
+        billboardId: data.isHomepage ? null : data.id,
+      });
+      toast.success(data.isHomepage ? 'Removed as homepage.' : 'Set as homepage.');
+      router.refresh();
+    } catch (error) {
+      toast.error('Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <AlertModal 
@@ -75,6 +90,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             onClick={() => router.push(`/${params.storeId}/billboards/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Update
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={onToggleHomepage}
+            disabled={loading}
+          >
+            {data.isHomepage ? (
+              <>
+                <ImageOff className="mr-2 h-4 w-4" /> Remove as homepage
+              </>
+            ) : (
+              <>
+                <ImagePlus className="mr-2 h-4 w-4" /> Set as homepage
+              </>
+            )}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setOpen(true)}

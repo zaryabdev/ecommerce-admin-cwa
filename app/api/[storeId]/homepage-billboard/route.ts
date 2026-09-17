@@ -1,0 +1,78 @@
+import { auth } from "@clerk/nextjs";
+import { NextResponse } from "next/server";
+
+import prismadb from "@/lib/prismadb";
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: { storeId: string } },
+) {
+    try {
+        const { userId } = auth();
+
+        const body = await req.json();
+
+        const { billboardId } = body;
+
+        if (!userId) {
+            return new NextResponse("Unauthenticated", { status: 403 });
+        }
+
+        if (!params.storeId) {
+            return new NextResponse("Store id is required", { status: 400 });
+        }
+
+        if (billboardId !== null && typeof billboardId !== "string") {
+            return new NextResponse("Billboard id is required", { status: 400 });
+        }
+
+        const storeByUserId = await prismadb.store.findFirst({
+            where: {
+                id: params.storeId,
+                userId,
+            },
+        });
+
+        if (!storeByUserId) {
+            return new NextResponse("Unauthorized", { status: 405 });
+        }
+
+        if (billboardId === null) {
+            const store = await prismadb.store.update({
+                where: {
+                    id: params.storeId,
+                },
+                data: {
+                    homepageBillboardId: null,
+                },
+            });
+
+            return NextResponse.json(store);
+        }
+
+        const billboard = await prismadb.billboard.findFirst({
+            where: {
+                id: billboardId,
+                storeId: params.storeId,
+            },
+        });
+
+        if (!billboard) {
+            return new NextResponse("Billboard not found", { status: 404 });
+        }
+
+        const store = await prismadb.store.update({
+            where: {
+                id: params.storeId,
+            },
+            data: {
+                homepageBillboardId: billboardId,
+            },
+        });
+
+        return NextResponse.json(store);
+    } catch (error) {
+        console.log("[HOMEPAGE_BILLBOARD_PATCH]", error);
+        return new NextResponse("Internal error", { status: 500 });
+    }
+}

@@ -19,10 +19,20 @@ const BillboardsPage = async ({
     }
   });
 
+  const store = await prismadb.store.findUnique({
+    where: {
+      id: params.storeId
+    },
+    select: {
+      homepageBillboardId: true
+    }
+  });
+
   const formattedBillboards: BillboardColumn[] = billboards.map((item) => ({
     id: item.id,
     label: item.label,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
+    isHomepage: item.id === store?.homepageBillboardId,
   }));
 
   return (
