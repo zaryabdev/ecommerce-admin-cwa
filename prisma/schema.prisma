@@ -42,18 +42,22 @@ model Billboard {
 }
 
 model Category {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   storeId     String
-  billboardId String
+  billboardId String?
+  parentId    String?
   name        String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  billboard   Billboard @relation(fields: [billboardId], references: [id])
-  store       Store     @relation("StoreToCategory", fields: [storeId], references: [id])
-  products    Product[] @relation("CategoryToProduct")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  billboard   Billboard? @relation(fields: [billboardId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  store       Store      @relation("StoreToCategory", fields: [storeId], references: [id])
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]  @relation("CategoryToProduct")
 
   @@index([storeId])
   @@index([billboardId])
+  @@index([parentId])
 }
 
 model Product {

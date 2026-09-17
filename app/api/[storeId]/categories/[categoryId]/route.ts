@@ -54,6 +54,24 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
+    const existingCategory = await prismadb.category.findFirst({
+      where: {
+        id: params.categoryId,
+        storeId: params.storeId,
+      },
+      include: {
+        children: true,
+      }
+    });
+
+    if (!existingCategory) {
+      return new NextResponse("Category not found", { status: 404 });
+    }
+
+    if (existingCategory.children.length > 0) {
+      return new NextResponse("Remove or reassign this category's child categories before deleting it", { status: 400 });
+    }
+
     const category = await prismadb.category.delete({
       where: {
         id: params.categoryId,
@@ -76,15 +94,14 @@ export async function PATCH(
     const { userId } = auth();
 
     const body = await req.json();
-    
-    const { name, billboardId } = body;
-    
+
+    const { name, billboardId, parentId } = body;
+
+    const normalizedBillboardId: string | null = billboardId || null;
+    const normalizedParentId: string | null = parentId || null;
+
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
-    }
-
-    if (!billboardId) {
-      return new NextResponse("Billboard ID is required", { status: 400 });
     }
 
     if (!name) {
@@ -106,13 +123,55 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
+    const existingCategory = await prismadb.category.findFirst({
+      where: {
+        id: params.categoryId,
+        storeId: params.storeId,
+      },
+      include: {
+        children: true,
+      }
+    });
+
+    if (!existingCategory) {
+      return new NextResponse("Category not found", { status: 404 });
+    }
+
+    if (normalizedParentId) {
+      if (normalizedParentId === params.categoryId) {
+        return new NextResponse("A category cannot be its own parent", { status: 400 });
+      }
+
+      if (existingCategory.children.length > 0) {
+        return new NextResponse("A category with child categories cannot be moved under another category", { status: 400 });
+      }
+
+      const parentCategory = await prismadb.category.findFirst({
+        where: {
+          id: normalizedParentId,
+          storeId: params.storeId,
+        }
+      });
+
+      if (!parentCategory) {
+        return new NextResponse("Parent category not found", { status: 400 });
+      }
+
+      if (parentCategory.parentId !== null) {
+        return new NextResponse("Parent category must be a top-level category", { status: 400 });
+      }
+    } else if (!normalizedBillboardId) {
+      return new NextResponse("Billboard ID is required", { status: 400 });
+    }
+
     const category = await prismadb.category.update({
       where: {
         id: params.categoryId,
       },
       data: {
         name,
-        billboardId
+        billboardId: normalizedBillboardId,
+        parentId: normalizedParentId,
       }
     });
   

@@ -12,7 +12,10 @@ export async function POST(
 
     const body = await req.json();
 
-    const { name, billboardId } = body;
+    const { name, billboardId, parentId } = body;
+
+    const normalizedBillboardId: string | null = billboardId || null;
+    const normalizedParentId: string | null = parentId || null;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -20,10 +23,6 @@ export async function POST(
 
     if (!name) {
       return new NextResponse("Name is required", { status: 400 });
-    }
-    
-    if (!billboardId) {
-      return new NextResponse("Billboard ID is required", { status: 400 });
     }
 
     if (!params.storeId) {
@@ -41,10 +40,30 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
+    if (normalizedParentId) {
+      const parentCategory = await prismadb.category.findFirst({
+        where: {
+          id: normalizedParentId,
+          storeId: params.storeId,
+        }
+      });
+
+      if (!parentCategory) {
+        return new NextResponse("Parent category not found", { status: 400 });
+      }
+
+      if (parentCategory.parentId !== null) {
+        return new NextResponse("Parent category must be a top-level category", { status: 400 });
+      }
+    } else if (!normalizedBillboardId) {
+      return new NextResponse("Billboard ID is required", { status: 400 });
+    }
+
     const category = await prismadb.category.create({
       data: {
         name,
-        billboardId,
+        billboardId: normalizedBillboardId,
+        parentId: normalizedParentId,
         storeId: params.storeId,
       }
     });

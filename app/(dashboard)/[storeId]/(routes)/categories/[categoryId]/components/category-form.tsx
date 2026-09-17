@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,21 +26,34 @@ import { Heading } from "@/components/ui/heading"
 import { AlertModal } from "@/components/modals/alert-modal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+const NONE_VALUE = "none";
+
 const formSchema = z.object({
   name: z.string().min(2),
-  billboardId: z.string().min(1),
+  billboardId: z.string(),
+  parentId: z.string(),
+}).superRefine((data, ctx) => {
+  if (data.parentId === NONE_VALUE && data.billboardId === NONE_VALUE) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Billboard is required for a top-level category",
+      path: ["billboardId"],
+    });
+  }
 });
 
 type CategoryFormValues = z.infer<typeof formSchema>
 
 interface CategoryFormProps {
-  initialData: Category | null;
+  initialData: (Category & { children: Category[] }) | null;
   billboards: Billboard[];
+  categories: Category[];
 };
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({
   initialData,
-  billboards
+  billboards,
+  categories,
 }) => {
   const params = useParams();
   const router = useRouter();
@@ -52,21 +66,33 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   const toastMessage = initialData ? 'Category updated.' : 'Category created.';
   const action = initialData ? 'Save changes' : 'Create';
 
+  const hasChildren = !!initialData && initialData.children.length > 0;
+
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      name: initialData.name,
+      billboardId: initialData.billboardId || NONE_VALUE,
+      parentId: initialData.parentId || NONE_VALUE,
+    } : {
       name: '',
-      billboardId: '',
+      billboardId: NONE_VALUE,
+      parentId: NONE_VALUE,
     }
   });
 
   const onSubmit = async (data: CategoryFormValues) => {
     try {
       setLoading(true);
+      const payload = {
+        name: data.name,
+        billboardId: data.billboardId === NONE_VALUE ? null : data.billboardId,
+        parentId: data.parentId === NONE_VALUE ? null : data.parentId,
+      };
       if (initialData) {
-        await axios.patch(`/api/${params.storeId}/categories/${params.categoryId}`, data);
+        await axios.patch(`/api/${params.storeId}/categories/${params.categoryId}`, payload);
       } else {
-        await axios.post(`/api/${params.storeId}/categories`, data);
+        await axios.post(`/api/${params.storeId}/categories`, payload);
       }
       router.refresh();
       router.push(`/${params.storeId}/categories`);
@@ -133,6 +159,34 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             />
             <FormField
               control={form.control}
+              name="parentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Parent Category</FormLabel>
+                  <Select disabled={loading || hasChildren} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue defaultValue={field.value} placeholder="Select a parent category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={NONE_VALUE}>None — Top-level category</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {hasChildren && (
+                    <FormDescription>
+                      This category has child categories and cannot be moved under another category.
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="billboardId"
               render={({ field }) => (
                 <FormItem>
@@ -144,6 +198,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value={NONE_VALUE}>None</SelectItem>
                       {billboards.map((billboard) => (
                         <SelectItem key={billboard.id} value={billboard.id}>{billboard.label}</SelectItem>
                       ))}
