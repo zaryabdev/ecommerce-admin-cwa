@@ -20,6 +20,12 @@ const ProductPage = async ({
     where: {
       storeId: params.storeId,
     },
+    include: {
+      parent: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
   });
 
   const sizes = await prismadb.size.findMany({

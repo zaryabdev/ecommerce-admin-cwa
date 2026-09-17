@@ -41,13 +41,31 @@ const formSchema = z.object({
 
 type ProductFormValues = z.infer<typeof formSchema>
 
+type CategoryWithParent = Category & { parent: Category | null };
+
 interface ProductFormProps {
   initialData: Product & {
     images: Image[]
   } | null;
-  categories: Category[];
+  categories: CategoryWithParent[];
   colors: Color[];
   sizes: Size[];
+};
+
+const buildCategoryOptions = (categories: CategoryWithParent[]) => {
+  const topLevel = categories.filter((category) => !category.parentId);
+
+  return topLevel.flatMap((parent) => {
+    const children = categories.filter((category) => category.parentId === parent.id);
+
+    return [
+      { id: parent.id, label: parent.name },
+      ...children.map((child) => ({
+        id: child.id,
+        label: `${parent.name} → ${child.name}`,
+      })),
+    ];
+  });
 };
 
 export const ProductForm: React.FC<ProductFormProps> = ({
@@ -61,6 +79,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const categoryOptions = buildCategoryOptions(categories);
 
   const title = initialData ? 'Edit product' : 'Create product';
   const description = initialData ? 'Edit a product.' : 'Add a new product';
@@ -201,8 +221,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                      {categoryOptions.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
