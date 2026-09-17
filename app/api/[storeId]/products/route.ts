@@ -94,15 +94,42 @@ export async function GET(
     const colorId = searchParams.get('colorId') || undefined;
     const sizeId = searchParams.get('sizeId') || undefined;
     const isFeatured = searchParams.get('isFeatured');
+    const includeChildCategories = searchParams.get('includeChildCategories') === 'true';
 
     if (!params.storeId) {
       return new NextResponse("Store id is required", { status: 400 });
     }
 
+    // categoryId defaults to an exact match. Only when a caller explicitly
+    // opts in with includeChildCategories=true does a top-level category
+    // also match products in its immediate child categories. Child
+    // categories and unknown/foreign ids keep exact matching either way.
+    let categoryIds: string[] | undefined;
+
+    if (categoryId && includeChildCategories) {
+      const category = await prismadb.category.findFirst({
+        where: {
+          id: categoryId,
+          storeId: params.storeId,
+        },
+        select: {
+          parentId: true,
+          children: {
+            where: { storeId: params.storeId },
+            select: { id: true },
+          },
+        },
+      });
+
+      categoryIds = category && category.parentId === null
+        ? [categoryId, ...category.children.map((child) => child.id)]
+        : [categoryId];
+    }
+
     const products = await prismadb.product.findMany({
       where: {
         storeId: params.storeId,
-        categoryId,
+        categoryId: categoryIds ? { in: categoryIds } : categoryId,
         colorId,
         sizeId,
         isFeatured: isFeatured ? true : undefined,
