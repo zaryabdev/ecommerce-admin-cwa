@@ -5,22 +5,33 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
     req: Request,
-    { params }: { params: { storeId: string } },
+    { params }: { params: { billboardId: string; storeId: string } },
 ) {
     try {
         if (!params.storeId) {
             return new NextResponse("Store id is required", { status: 400 });
         }
 
-        const billboards = await prismadb.billboard.findFirst({
+        if (!params.billboardId) {
+            return new NextResponse("Billboard id is required", {
+                status: 400,
+            });
+        }
+
+        const billboard = await prismadb.billboard.findFirst({
             where: {
+                id: params.billboardId,
                 storeId: params.storeId,
             },
         });
 
-        return NextResponse.json(billboards);
+        if (!billboard) {
+            return new NextResponse("Not found", { status: 404 });
+        }
+
+        return NextResponse.json(billboard);
     } catch (error) {
-        console.log("[BILLBOARDS_GET]", error);
+        console.log("[BILLBOARD_GET]", error);
         return new NextResponse("Internal error", { status: 500 });
     }
 }
