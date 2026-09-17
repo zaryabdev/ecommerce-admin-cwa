@@ -3,6 +3,35 @@ import { NextResponse } from "next/server";
 
 import prismadb from "@/lib/prismadb";
 
+export async function GET(
+    req: Request,
+    { params }: { params: { storeId: string } },
+) {
+    try {
+        if (!params.storeId) {
+            return new NextResponse("Store id is required", { status: 400 });
+        }
+
+        const store = await prismadb.store.findUnique({
+            where: {
+                id: params.storeId,
+            },
+            include: {
+                homepageBillboard: true,
+            },
+        });
+
+        if (!store) {
+            return new NextResponse("Not found", { status: 404 });
+        }
+
+        return NextResponse.json(store.homepageBillboard);
+    } catch (error) {
+        console.log("[HOMEPAGE_BILLBOARD_GET]", error);
+        return new NextResponse("Internal error", { status: 500 });
+    }
+}
+
 export async function PATCH(
     req: Request,
     { params }: { params: { storeId: string } },
