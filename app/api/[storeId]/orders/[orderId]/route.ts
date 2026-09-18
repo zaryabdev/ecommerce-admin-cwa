@@ -1,6 +1,7 @@
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { OrderStatus } from "@prisma/client";
+import { auth } from "@clerk/nextjs";
 
 class InsufficientStockError extends Error {
     items: Array<{ productId: string; requested: number; available: number }>;
@@ -33,6 +34,23 @@ export async function PATCH(
     { params }: { params: { storeId: string; orderId: string } },
 ) {
     try {
+        const { userId } = auth();
+
+        if (!userId) {
+            return new NextResponse("Unauthenticated", { status: 403 });
+        }
+
+        const storeByUserId = await prismadb.store.findFirst({
+            where: {
+                id: params.storeId,
+                userId,
+            },
+        });
+
+        if (!storeByUserId) {
+            return new NextResponse("Unauthorized", { status: 405 });
+        }
+
         const { status } = await req.json();
 
         if (!status || !(status in ALLOWED_TRANSITIONS)) {
@@ -41,8 +59,11 @@ export async function PATCH(
 
         const nextStatus = status as OrderStatus;
 
-        const order = await prismadb.order.findUnique({
-            where: { id: params.orderId },
+        const order = await prismadb.order.findFirst({
+            where: {
+                id: params.orderId,
+                storeId: params.storeId,
+            },
             include: { orderItems: true },
         });
 
@@ -77,7 +98,11 @@ export async function PATCH(
             try {
                 const updatedOrder = await prismadb.$transaction(async (tx) => {
                     const claim = await tx.order.updateMany({
-                        where: { id: params.orderId, status: previousStatus },
+                        where: {
+                            id: params.orderId,
+                            storeId: params.storeId,
+                            status: previousStatus,
+                        },
                         data: { status: "CONFIRMED" },
                     });
 
@@ -153,7 +178,11 @@ export async function PATCH(
             try {
                 const updatedOrder = await prismadb.$transaction(async (tx) => {
                     const claim = await tx.order.updateMany({
-                        where: { id: params.orderId, status: "CONFIRMED" },
+                        where: {
+                            id: params.orderId,
+                            storeId: params.storeId,
+                            status: "CONFIRMED",
+                        },
                         data: { status: "CANCELED" },
                     });
 
@@ -190,7 +219,11 @@ export async function PATCH(
         // CONFIRMED -> DELIVERED) has no inventory effect: a single
         // conditional status claim is enough on its own.
         const claim = await prismadb.order.updateMany({
-            where: { id: params.orderId, status: previousStatus },
+            where: {
+                id: params.orderId,
+                storeId: params.storeId,
+                status: previousStatus,
+            },
             data: { status: nextStatus },
         });
 
