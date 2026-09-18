@@ -66,6 +66,7 @@ model Product {
   categoryId String
   name       String
   price      Decimal
+  quantity   Int         @default(0)
   isFeatured Boolean     @default(false)
   isArchived Boolean     @default(false)
   sizeId     String
@@ -132,6 +133,7 @@ model OrderItem {
   id        String  @id @default(uuid())
   orderId   String
   productId String
+  quantity  Int     @default(1)
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 

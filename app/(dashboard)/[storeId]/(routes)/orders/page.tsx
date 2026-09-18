@@ -51,10 +51,12 @@ const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
         // handy display string (for table & modal)
         shippingAddress: buildShippingAddress(item),
 
-        products: item.orderItems.map((oi) => oi.product.name).join(", "),
+        products: item.orderItems
+            .map((oi) => `${oi.product.name} × ${oi.quantity}`)
+            .join(", "),
         totalPrice: formatter.format(
             item.orderItems.reduce(
-                (total, oi) => total + Number(oi.product.price),
+                (total, oi) => total + Number(oi.product.price) * oi.quantity,
                 0,
             ),
         ),

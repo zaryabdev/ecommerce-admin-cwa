@@ -4,16 +4,17 @@
 
     - [ ] **Product quantity / stock — NEXT**
 
-        - [ ] Add quantity to Product creation
-        - [ ] Add quantity to Product edit
-        - [ ] Persist quantity in Admin/API + Prisma
-        - [ ] Show available quantity appropriately in Storefront
-        - [ ] Prevent adding more than available stock to cart
-        - [ ] Validate quantity again when placing the order
-        - [ ] Reduce stock when an order is successfully created
-        - [ ] Handle `0` quantity / out-of-stock UI
-        - [ ] Decide behavior if cart contains an item whose stock changed before checkout
-        - [ ] Preserve historical OrderItem data even when Product quantity later changes
+        - [x] Add quantity to Product creation
+        - [x] Add quantity to Product edit
+        - [x] Persist quantity in Admin/API + Prisma
+        - [x] Show available quantity appropriately in Storefront
+        - [x] Prevent adding more than available stock to cart
+        - [x] Validate quantity again when placing the order
+        - [x] Reduce stock when Admin confirms an order
+        - [x] Restore stock when Admin cancels a confirmed order
+        - [x] Handle `0` quantity / out-of-stock UI
+        - [x] Decide behavior if cart contains an item whose stock changed before checkout
+        - [x] Preserve historical OrderItem data even when Product quantity later changes
 
     - [ ] Verify Store creation flow
     - [ ] Verify Products / Categories
@@ -110,16 +111,17 @@ Yes. I’d make **Product Quantity / Stock** the next concrete Release 1 task an
 
     - [ ] **Product quantity / stock — NEXT**
 
-        - [ ] Add quantity to Product creation
-        - [ ] Add quantity to Product edit
-        - [ ] Persist quantity in Admin/API + Prisma
-        - [ ] Show available quantity appropriately in Storefront
-        - [ ] Prevent adding more than available stock to cart
-        - [ ] Validate quantity again when placing the order
-        - [ ] Reduce stock when an order is successfully created
-        - [ ] Handle `0` quantity / out-of-stock UI
-        - [ ] Decide behavior if cart contains an item whose stock changed before checkout
-        - [ ] Preserve historical OrderItem data even when Product quantity later changes
+        - [x] Add quantity to Product creation
+        - [x] Add quantity to Product edit
+        - [x] Persist quantity in Admin/API + Prisma
+        - [x] Show available quantity appropriately in Storefront
+        - [x] Prevent adding more than available stock to cart
+        - [x] Validate quantity again when placing the order
+        - [x] Reduce stock when Admin confirms an order
+        - [x] Restore stock when Admin cancels a confirmed order
+        - [x] Handle `0` quantity / out-of-stock UI
+        - [x] Decide behavior if cart contains an item whose stock changed before checkout
+        - [x] Preserve historical OrderItem data even when Product quantity later changes
 
     - [ ] Verify Store creation flow
     - [ ] Verify Products / Categories

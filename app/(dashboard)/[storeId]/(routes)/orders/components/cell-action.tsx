@@ -20,11 +20,23 @@ interface CellActionProps {
     data: OrderColumn;
 }
 
+// Mirrors the transition matrix enforced server-side in
+// app/api/[storeId]/orders/[orderId]/route.ts — keeps the dropdown from
+// offering an action the API would now reject as an invalid transition.
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+    DRAFT: ["CONFIRMED", "CANCELED"],
+    CONFIRMED: ["DELIVERED", "CANCELED"],
+    CANCELED: ["CONFIRMED"],
+    DELIVERED: [],
+};
+
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     const router = useRouter();
     const params = useParams();
 
     const [openDetails, setOpenDetails] = useState(false);
+
+    const allowedTargets = ALLOWED_TRANSITIONS[data.status] ?? [];
 
     const onStatusChange = useCallback(
         async (status: string) => {
@@ -61,21 +73,27 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         View details
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                        onClick={() => onStatusChange("CONFIRMED")}
-                    >
-                        Mark Confirmed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => onStatusChange("DELIVERED")}
-                    >
-                        Mark Delivered
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => onStatusChange("CANCELED")}
-                    >
-                        Cancel Order
-                    </DropdownMenuItem>
+                    {allowedTargets.includes("CONFIRMED") && (
+                        <DropdownMenuItem
+                            onClick={() => onStatusChange("CONFIRMED")}
+                        >
+                            Mark Confirmed
+                        </DropdownMenuItem>
+                    )}
+                    {allowedTargets.includes("DELIVERED") && (
+                        <DropdownMenuItem
+                            onClick={() => onStatusChange("DELIVERED")}
+                        >
+                            Mark Delivered
+                        </DropdownMenuItem>
+                    )}
+                    {allowedTargets.includes("CANCELED") && (
+                        <DropdownMenuItem
+                            onClick={() => onStatusChange("CANCELED")}
+                        >
+                            Cancel Order
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </>

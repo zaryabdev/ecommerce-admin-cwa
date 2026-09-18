@@ -13,8 +13,13 @@ export async function OPTIONS() {
     return NextResponse.json({}, { headers: corsHeaders });
 }
 
+type OrderLineInput = {
+    productId: string;
+    quantity: number;
+};
+
 type CreateOrderPayload = {
-    productIds: string[];
+    items: OrderLineInput[];
     paymentMethod?: "COD";
     customer?: {
         name?: string;
@@ -54,26 +59,94 @@ export async function POST(
     try {
         const payload = (await req.json()) as CreateOrderPayload;
 
-        const productIds = payload?.productIds ?? [];
-        if (!Array.isArray(productIds) || productIds.length === 0) {
-            return new NextResponse("Product ids are required", {
+        const items = payload?.items ?? [];
+        if (!Array.isArray(items) || items.length === 0) {
+            return new NextResponse("Items are required", {
                 status: 400,
             });
         }
 
+        for (const item of items) {
+            if (
+                !item ||
+                typeof item.productId !== "string" ||
+                !item.productId ||
+                typeof item.quantity !== "number" ||
+                !Number.isInteger(item.quantity) ||
+                item.quantity < 1
+            ) {
+                return NextResponse.json(
+                    {
+                        error: "INVALID_ITEM",
+                        message: "Each item requires a valid productId and a positive integer quantity.",
+                    },
+                    { status: 400, headers: corsHeaders },
+                );
+            }
+        }
+
+        const productIds = items.map((item) => item.productId);
+
         const products = await prismadb.product.findMany({
-            where: { id: { in: productIds } },
+            where: { id: { in: productIds }, storeId: params.storeId },
             include: { size: true, color: true },
         });
 
-        if (!products.length) {
-            return new NextResponse("No products found", { status: 404 });
+        const productsById = new Map(products.map((p) => [p.id, p]));
+
+        const unavailable: Array<{
+            productId: string;
+            reason: "NOT_FOUND" | "ARCHIVED" | "INSUFFICIENT_STOCK";
+            requested: number;
+            available?: number;
+        }> = [];
+
+        for (const item of items) {
+            const product = productsById.get(item.productId);
+
+            if (!product) {
+                unavailable.push({
+                    productId: item.productId,
+                    reason: "NOT_FOUND",
+                    requested: item.quantity,
+                });
+                continue;
+            }
+
+            if (product.isArchived) {
+                unavailable.push({
+                    productId: item.productId,
+                    reason: "ARCHIVED",
+                    requested: item.quantity,
+                });
+                continue;
+            }
+
+            if (item.quantity > product.quantity) {
+                unavailable.push({
+                    productId: item.productId,
+                    reason: "INSUFFICIENT_STOCK",
+                    requested: item.quantity,
+                    available: product.quantity,
+                });
+            }
         }
 
-        const totalPrice = products.reduce(
-            (sum, p) => sum + Number(p.price),
-            0,
-        );
+        if (unavailable.length > 0) {
+            return NextResponse.json(
+                {
+                    error: "ORDER_NOT_PLACEABLE",
+                    message: "One or more items are unavailable in the requested quantity.",
+                    items: unavailable,
+                },
+                { status: 400, headers: corsHeaders },
+            );
+        }
+
+        const totalPrice = items.reduce((sum, item) => {
+            const product = productsById.get(item.productId)!;
+            return sum + Number(product.price) * item.quantity;
+        }, 0);
 
         const trackingId = createTrackingId();
 
@@ -97,6 +170,9 @@ export async function POST(
         // keep this for backward compatibility / display
         const address = buildAddressString(payload);
 
+        // Order creation only records the request — it never adjusts
+        // Product.quantity. Stock is committed atomically when an Admin
+        // confirms the order (see app/api/[storeId]/orders/[orderId]/route.ts).
         const order = await prismadb.order.create({
             data: {
                 storeId: params.storeId,
@@ -121,8 +197,9 @@ export async function POST(
                 address,
 
                 orderItems: {
-                    create: productIds.map((productId: string) => ({
-                        product: { connect: { id: productId } },
+                    create: items.map((item) => ({
+                        quantity: item.quantity,
+                        product: { connect: { id: item.productId } },
                     })),
                 },
             },
@@ -171,6 +248,7 @@ export async function POST(
                     id: item.product.id,
                     name: item.product.name,
                     price: item.product.price,
+                    quantity: item.quantity,
                     size: item.product.size,
                     color: item.product.color,
                 })),

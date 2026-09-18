@@ -18,6 +18,7 @@ type NotificationOrder = {
     customerNotes: string;
     store: { name: string; userId: string };
     orderItems: Array<{
+        quantity: number;
         product: {
             name: string;
             price: unknown;
@@ -67,8 +68,8 @@ export async function sendNewOrderNotification(order: NotificationOrder) {
 
     const productsText = order.orderItems
         .map(
-            ({ product }) =>
-                `${product.name} | Size: ${product.size.name} | Color: ${product.color.name} | ${formatter.format(Number(product.price))}`,
+            ({ product, quantity }) =>
+                `${product.name} | Qty: ${quantity} | Size: ${product.size.name} | Color: ${product.color.name} | ${formatter.format(Number(product.price))}`,
         )
         .join("\n");
 
@@ -101,8 +102,8 @@ export async function sendNewOrderNotification(order: NotificationOrder) {
         )
         .join("")}</table><h3>Products</h3><ul>${order.orderItems
         .map(
-            ({ product }) =>
-                `<li>${escapeHtml(product.name)} — Size: ${escapeHtml(product.size.name)}, Color: ${escapeHtml(product.color.name)}, ${escapeHtml(formatter.format(Number(product.price)))}</li>`,
+            ({ product, quantity }) =>
+                `<li>${escapeHtml(product.name)} — Qty: ${quantity}, Size: ${escapeHtml(product.size.name)}, Color: ${escapeHtml(product.color.name)}, ${escapeHtml(formatter.format(Number(product.price)))}</li>`,
         )
         .join("")}</ul><p><strong>Order total: ${escapeHtml(formatter.format(order.totalPrice))}</strong></p></body></html>`;
 
