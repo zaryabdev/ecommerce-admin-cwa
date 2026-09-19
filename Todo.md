@@ -1,3 +1,20 @@
+## Super Admin / Platform Billing Prerequisites
+
+- [x] **1. Store Billing Profile**
+  - [x] Prisma model
+  - [x] Migration
+  - [x] Store relation
+  - [x] Read/update API
+  - [x] Validation
+  - [x] Store Settings Billing UI
+  - [x] Existing-data compatibility
+  - [x] Verification
+- [ ] 2. Immutable Order Monetary Snapshots
+- [ ] 3. Monthly Eligible Sales Definition + Backend Calculation
+- [ ] 4. Platform Authentication / Authorization + Platform APIs
+- [ ] 5. Billing Plans + Store Assignment + Invoice Domain
+- [ ] 6. Super Admin Application Implementation
+
 ## Release 1 TODO — Locked Priority
 
 - [ ] **1. Stabilize existing Retail core**

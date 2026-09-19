@@ -1,7 +1,9 @@
 {
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#188787",
-        "titleBar.activeBackground": "#188787",
-        "titleBar.activeForeground": "#FDFBFE"
-    }
-}
+    "prisma.pinToPrisma6": true
+} // {
+//     "workbench.colorCustomizations": {
+//         "activityBar.background": "#188787",
+//         "titleBar.activeBackground": "#188787",
+//         "titleBar.activeForeground": "#FDFBFE"
+//     }
+// }
