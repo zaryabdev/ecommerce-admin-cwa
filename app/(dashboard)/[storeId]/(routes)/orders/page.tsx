@@ -54,11 +54,15 @@ const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
         products: item.orderItems
             .map((oi) => `${oi.product.name} × ${oi.quantity}`)
             .join(", "),
+        // Snapshot-backed orders use immutable Order.total. Legacy orders have
+        // no authoritative historical amount; retain the old display fallback.
         totalPrice: formatter.format(
-            item.orderItems.reduce(
-                (total, oi) => total + Number(oi.product.price) * oi.quantity,
-                0,
-            ),
+            item.total != null
+                ? Number(item.total)
+                : item.orderItems.reduce(
+                      (total, oi) => total + Number(oi.product.price) * oi.quantity,
+                      0,
+                  ),
         ),
 
         status: item.status,

@@ -2,6 +2,7 @@ import prismadb from "@/lib/prismadb";
 import { createTrackingId } from "@/lib/trackingId";
 import { NextResponse } from "next/server";
 import { sendNewOrderNotification } from "@/lib/email/send-new-order-notification";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -143,10 +144,17 @@ export async function POST(
             );
         }
 
-        const totalPrice = items.reduce((sum, item) => {
+        const calculatedItems = items.map((item) => {
             const product = productsById.get(item.productId)!;
-            return sum + Number(product.price) * item.quantity;
-        }, 0);
+            const unitPrice = new Decimal(product.price);
+            const lineTotal = unitPrice.mul(item.quantity);
+            return { item, unitPrice, lineTotal };
+        });
+        const subtotal = calculatedItems.reduce(
+            (sum, item) => sum.add(item.lineTotal),
+            new Decimal(0),
+        );
+        const total = subtotal;
 
         const trackingId = createTrackingId();
 
@@ -197,11 +205,16 @@ export async function POST(
                 address,
 
                 orderItems: {
-                    create: items.map((item) => ({
+                    create: calculatedItems.map(({ item, unitPrice, lineTotal }) => ({
                         quantity: item.quantity,
+                        unitPrice,
+                        lineTotal,
                         product: { connect: { id: item.productId } },
                     })),
                 },
+                subtotal,
+                total,
+                currency: "PKR",
             },
             include: {
                 orderItems: {
@@ -216,7 +229,7 @@ export async function POST(
         try {
             await sendNewOrderNotification({
                 ...order,
-                totalPrice,
+                totalPrice: Number(total),
             });
         } catch (notificationError) {
             console.error("Order notification failed", notificationError);
@@ -249,10 +262,15 @@ export async function POST(
                     name: item.product.name,
                     price: item.product.price,
                     quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    lineTotal: item.lineTotal,
                     size: item.product.size,
                     color: item.product.color,
                 })),
-                totalPrice,
+                subtotal: order.subtotal,
+                total: order.total,
+                currency: order.currency,
+                totalPrice: Number(total),
                 store: { id: order.store.id, name: order.store.name },
             },
             { headers: corsHeaders },

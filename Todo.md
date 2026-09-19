@@ -9,7 +9,16 @@
   - [x] Store Settings Billing UI
   - [x] Existing-data compatibility
   - [x] Verification
-- [ ] 2. Immutable Order Monetary Snapshots
+- [ ] **2. Immutable Order Monetary Snapshots**
+  - [x] Prisma monetary snapshot fields
+  - [x] Migration
+  - [x] COD authoritative price capture
+  - [x] Quantity-aware line totals
+  - [x] Order subtotal/total snapshot
+  - [x] Currency snapshot
+  - [x] Existing-order compatibility
+  - [x] Current order response/display consistency
+  - [ ] Verification
 - [ ] 3. Monthly Eligible Sales Definition + Backend Calculation
 - [ ] 4. Platform Authentication / Authorization + Platform APIs
 - [ ] 5. Billing Plans + Store Assignment + Invoice Domain
