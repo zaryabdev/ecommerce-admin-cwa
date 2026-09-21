@@ -18,7 +18,7 @@
   - [x] Currency snapshot
   - [x] Existing-order compatibility
   - [x] Current order response/display consistency
-  - [ ] Verification
+  - [x] Verification
 - [ ] 3. Monthly Eligible Sales Definition + Backend Calculation
 - [ ] 4. Platform Authentication / Authorization + Platform APIs
 - [ ] 5. Billing Plans + Store Assignment + Invoice Domain
