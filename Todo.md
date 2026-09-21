@@ -9,7 +9,7 @@
   - [x] Store Settings Billing UI
   - [x] Existing-data compatibility
   - [x] Verification
-- [ ] **2. Immutable Order Monetary Snapshots**
+- [x] **2. Immutable Order Monetary Snapshots**
   - [x] Prisma monetary snapshot fields
   - [x] Migration
   - [x] COD authoritative price capture
