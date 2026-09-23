@@ -241,22 +241,22 @@ Single cross-repo source of truth for platform billing. Implement sequentially, 
 Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ecommerce-super-admin frontend. Both listed where a task spans repos.
 
 - [ ] **1. Billing Domain / Prisma Design** — Admin/API
-    - [ ] `BillingPlan` model
-    - [ ] Store → current Billing Plan relationship
-    - [ ] FIXED plan fields
-    - [ ] PERCENTAGE plan fields
-    - [ ] PKR-only Release 1 behavior
-    - [ ] Order confirmation timestamp field required for billing attribution
-    - [ ] Invoice model
-    - [ ] Immutable invoice calculation/plan snapshot fields
-    - [ ] Payment model
-    - [ ] Payment evidence attachment model
-    - [ ] Email delivery state fields
+    - [x] `BillingPlan` model
+    - [x] Store → current Billing Plan relationship
+    - [x] FIXED plan fields
+    - [x] PERCENTAGE plan fields
+    - [x] PKR-only Release 1 behavior
+    - [x] Order confirmation timestamp field required for billing attribution
+    - [x] Invoice model
+    - [x] Immutable invoice calculation/plan snapshot fields
+    - [x] Payment model
+    - [x] Payment evidence attachment model
+    - [x] Email delivery state fields
     - [ ] Financial ledger/transaction model (or agreed representation)
-    - [ ] Indexes / unique constraints
-    - [ ] Store + Billing Month uniqueness constraint
-    - [ ] Decimal/money handling strategy
-    - [ ] Migrations
+    - [x] Indexes / unique constraints
+    - [x] Store + Billing Month uniqueness constraint
+    - [x] Decimal/money handling strategy
+    - [x] Migrations
 
 - [ ] **2. Billing Plans** — Admin/API
     - [ ] Billing Plan CRUD API

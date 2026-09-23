@@ -9,45 +9,175 @@ datasource db {
 }
 
 model Store {
-  id                  String      @id @default(uuid())
+  id                  String               @id @default(uuid())
   name                String
   userId              String
   logoUrl             String?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  billboards          Billboard[] @relation("StoreToBillboard")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  billboards          Billboard[]          @relation("StoreToBillboard")
   homepageBillboardId String?
-  homepageBillboard   Billboard?  @relation("StoreHomepageBillboard", fields: [homepageBillboardId], references: [id])
-  categories          Category[]  @relation("StoreToCategory")
-  colors              Color[]     @relation("StoreToColor")
-  orders              Order[]     @relation("StoreToOrder")
-  products            Product[]   @relation("StoreToProduct")
-  sizes               Size[]      @relation("StoreToSize")
+  homepageBillboard   Billboard?           @relation("StoreHomepageBillboard", fields: [homepageBillboardId], references: [id])
+  categories          Category[]           @relation("StoreToCategory")
+  colors              Color[]              @relation("StoreToColor")
+  orders              Order[]              @relation("StoreToOrder")
+  products            Product[]            @relation("StoreToProduct")
+  sizes               Size[]               @relation("StoreToSize")
   billingProfile      StoreBillingProfile?
 
+  // Current Billing Plan assignment (Release 1: no history/effective-dating).
+  billingPlanId String?
+  billingPlan   BillingPlan? @relation("StoreCurrentBillingPlan", fields: [billingPlanId], references: [id], onDelete: Restrict)
+  invoices      Invoice[]    @relation("StoreToInvoice")
+
   @@index([homepageBillboardId])
+  @@index([billingPlanId])
 }
 
 model StoreBillingProfile {
-  id                       String   @id @default(uuid())
-  storeId                  String   @unique
-  legalName                String?
-  billingContactName       String?
-  billingEmail             String?
-  billingPhone             String?
-  addressLine1             String?
-  addressLine2             String?
-  city                     String?
-  postalCode               String?
-  country                  String?
-  taxNumber                String?
+  id                        String   @id @default(uuid())
+  storeId                   String   @unique
+  legalName                 String?
+  billingContactName        String?
+  billingEmail              String?
+  billingPhone              String?
+  addressLine1              String?
+  addressLine2              String?
+  city                      String?
+  postalCode                String?
+  country                   String?
+  taxNumber                 String?
   companyRegistrationNumber String?
-  currency                 String   @default("PKR")
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
-  store                    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  currency                  String   @default("PKR")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  store                     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   @@index([storeId])
+}
+
+enum BillingPlanType {
+  FIXED
+  PERCENTAGE
+}
+
+model BillingPlan {
+  id             String          @id @default(uuid())
+  name           String
+  type           BillingPlanType
+  // Exactly one of these is populated per `type`; enforced by the future
+  // Billing Plan API/service layer, not by this schema.
+  fixedAmount    Decimal?
+  percentageRate Decimal?
+  // Soft-retire only: an archived plan is no longer assignable to new
+  // Stores but remains physically present for Stores/Invoices that
+  // reference it (see onDelete: Restrict below).
+  isArchived     Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  stores   Store[]   @relation("StoreCurrentBillingPlan")
+  invoices Invoice[] @relation("InvoiceBillingPlan")
+}
+
+enum InvoicePaymentStatus {
+  PENDING
+  PAID
+}
+
+enum InvoiceEmailStatus {
+  NOT_SENT
+  SENT
+  FAILED
+}
+
+model Invoice {
+  id            String @id @default(uuid())
+  invoiceNumber String @unique
+
+  storeId String
+  store   Store  @relation("StoreToInvoice", fields: [storeId], references: [id], onDelete: Restrict)
+
+  // Billing month, stored as separate integers (never a display string or
+  // a DateTime) so Store + month uniqueness is a plain composite key.
+  billingMonthYear  Int
+  billingMonthMonth Int
+
+  // Historical reference only — traceability, never re-read to recompute
+  // an already-generated invoice's calculation.
+  billingPlanId String
+  billingPlan   BillingPlan @relation("InvoiceBillingPlan", fields: [billingPlanId], references: [id], onDelete: Restrict)
+
+  // Immutable calculation snapshot — the sole source of truth for this
+  // invoice's historical figures, independent of the live BillingPlan row.
+  billingPlanName String
+  billingPlanType BillingPlanType
+
+  fixedAmount    Decimal?
+  percentageRate Decimal?
+
+  eligibleSales    Decimal
+  basePlatformFee  Decimal
+  additionalCharge Decimal @default(0)
+  discount         Decimal @default(0)
+  total            Decimal
+
+  currency String  @default("PKR")
+  notes    String?
+
+  invoiceDate DateTime @default(now())
+  dueDate     DateTime @default(now())
+
+  paymentStatus InvoicePaymentStatus @default(PENDING)
+
+  emailStatus        InvoiceEmailStatus @default(NOT_SENT)
+  emailSentAt        DateTime?
+  lastEmailAttemptAt DateTime?
+  emailError         String?
+  emailAttemptCount  Int                @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment Payment?
+
+  @@unique([storeId, billingMonthYear, billingMonthMonth])
+  @@index([storeId])
+  @@index([billingPlanId])
+  @@index([paymentStatus])
+}
+
+model Payment {
+  id        String  @id @default(uuid())
+  invoiceId String  @unique
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  // Release 1 is full-payment only; amount is expected to equal
+  // Invoice.total at the service layer.
+  amount      Decimal
+  paymentDate DateTime
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  evidence PaymentEvidence[]
+}
+
+model PaymentEvidence {
+  id        String  @id @default(uuid())
+  paymentId String
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  url       String
+  publicId  String?
+  fileName  String
+  mimeType  String
+  sizeBytes Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([paymentId])
 }
 
 model Billboard {
@@ -120,12 +250,17 @@ model Order {
   trackingId    String        @unique
 
   // Nullable for legacy orders created before immutable snapshots existed.
-  subtotal      Decimal?
-  total         Decimal?
-  currency      String?
+  subtotal Decimal?
+  total    Decimal?
+  currency String?
 
   // payment flags
   isPaid Boolean @default(false)
+
+  // Latest CONFIRMED transition timestamp (DRAFT->CONFIRMED or CANCELED->CONFIRMED).
+  // Authoritative for billing-month attribution. Null on legacy rows and on
+  // orders that have never been confirmed; never backfilled from createdAt.
+  confirmedAt DateTime?
 
   // customer
   customerName String @default("")
@@ -155,18 +290,19 @@ model Order {
   @@index([paymentMethod])
   @@index([isPaid])
   @@index([city])
+  @@index([confirmedAt])
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   orderId   String
   productId String
-  quantity  Int     @default(1)
+  quantity  Int      @default(1)
   // Captured from Product.price at order creation; null on legacy rows.
   unitPrice Decimal?
   lineTotal Decimal?
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
