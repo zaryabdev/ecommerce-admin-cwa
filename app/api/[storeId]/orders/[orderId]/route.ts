@@ -94,7 +94,14 @@ export async function PATCH(
         // ONE transaction. Any insufficient-stock line, or losing the claim
         // to a concurrent request, rolls back everything — never a partial
         // confirmation.
+        //
+        // confirmedAt is set/overwritten in the same claim write as the
+        // status change (DRAFT->CONFIRMED and CANCELED->CONFIRMED both land
+        // here), so the timestamp is authoritative for the latest successful
+        // confirmation and can never be written by a transition that fails
+        // or loses the compare-and-set race.
         if (nextStatus === "CONFIRMED") {
+            const confirmedAt = new Date();
             try {
                 const updatedOrder = await prismadb.$transaction(async (tx) => {
                     const claim = await tx.order.updateMany({
@@ -103,7 +110,7 @@ export async function PATCH(
                             storeId: params.storeId,
                             status: previousStatus,
                         },
-                        data: { status: "CONFIRMED" },
+                        data: { status: "CONFIRMED", confirmedAt },
                     });
 
                     if (claim.count !== 1) {

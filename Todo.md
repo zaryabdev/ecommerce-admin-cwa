@@ -240,7 +240,7 @@ Single cross-repo source of truth for platform billing. Implement sequentially, 
 
 Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ecommerce-super-admin frontend. Both listed where a task spans repos.
 
-- [ ] **1. Billing Domain / Prisma Design** — Admin/API
+- [x] **1. Billing Domain / Prisma Design** — Admin/API
     - [x] `BillingPlan` model
     - [x] Store → current Billing Plan relationship
     - [x] FIXED plan fields
@@ -252,7 +252,7 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
     - [x] Payment model
     - [x] Payment evidence attachment model
     - [x] Email delivery state fields
-    - [ ] Financial ledger/transaction model (or agreed representation)
+    - [x] Financial ledger/transaction model (or agreed representation)
     - [x] Indexes / unique constraints
     - [x] Store + Billing Month uniqueness constraint
     - [x] Decimal/money handling strategy
@@ -280,15 +280,14 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
     - [ ] Loading/error/empty states
     - [ ] Responsive/manual verification
 
-- [ ] **4. Order Confirmation Timestamp** — Admin/API
-    - [ ] Add reliable confirmation timestamp to Order/domain
-    - [ ] `DRAFT -> CONFIRMED` sets confirmation timestamp
-    - [ ] `CANCELED -> CONFIRMED` sets a NEW/latest confirmation timestamp
-    - [ ] Latest confirmation date is authoritative for billing month
-    - [ ] Cancellation does not invent billing revenue
-    - [ ] Preserve existing stock transition/concurrency behavior
-    - [ ] Migration/backfill strategy for legacy orders
-    - [ ] Tests/manual verification
+- [x] **4. Order Confirmation Timestamp** — Admin/API
+    - [x] Add reliable confirmation timestamp to Order/domain
+    - [x] `DRAFT -> CONFIRMED` sets confirmation timestamp
+    - [x] `CANCELED -> CONFIRMED` sets a NEW/latest confirmation timestamp
+    - [x] Latest confirmation date is authoritative for billing month
+    - [x] Preserve existing stock transition/concurrency behavior
+    - [x] Migration/backfill strategy for legacy orders
+    - [x] Tests/manual verification
     - Locked rule: order confirmed in August, canceled, re-confirmed in September → billing month = September (latest confirmation).
 
 - [ ] **5. Eligible Monthly Sales Calculation** — Admin/API
@@ -298,6 +297,7 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
     - [ ] Confirmation timestamp determines month
     - [ ] CONFIRMED + DELIVERED eligible
     - [ ] DRAFT + CANCELED excluded
+    - [ ] Cancellation does not invent billing revenue
     - [ ] `isPaid` ignored
     - [ ] Use immutable `Order.total`
     - [ ] Legacy fallback policy where required
