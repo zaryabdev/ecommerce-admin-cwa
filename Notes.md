@@ -77,3 +77,82 @@ Confirm the actual email reaches the Store owner with that exact PDF attached.
 Download the PDF through the new PDF route and compare it with the attachment.
 Use Resend Email and confirm attempt count/status update without creating another Invoice.
 Optionally force one delivery failure and verify the Invoice remains intact and Resend recovers it.
+
+---
+
+You can now test the **whole billing flow manually from Preview → Permanent Invoice → PDF → Email → Resend**. Since the Super Admin invoice-management UI is not built yet, I’d test the backend endpoints directly first.
+
+Use a **dev Store** and set `RESEND_TEST_RECIPIENT` to your own email before testing. The current email resolver supports that override, so you can test real delivery without accidentally emailing a Store owner.
+
+1. **Prepare one clean test Store.** Assign it a valid Billing Plan. For the first test, use something easy to verify manually, e.g. `PERCENTAGE = 5`. Create or use Orders for a completed past UTC month. Make sure at least one is `CONFIRMED` or `DELIVERED` with `confirmedAt` inside that month. Keep a `DRAFT` and `CANCELED` Order around too so you can confirm they are excluded.
+
+2. **Test Invoice Preview first.** Call:
+
+    ```http
+    POST /api/super-admin/stores/{storeId}/invoices/preview
+    ```
+
+    with something like:
+
+    ```json
+    {
+        "billingMonthYear": 2026,
+        "billingMonthMonth": 8,
+        "additionalCharge": "500",
+        "discount": "100",
+        "notes": "Manual billing test"
+    }
+    ```
+
+    Verify `eligibleSales`, `basePlatformFee`, `additionalCharge`, `discount`, `total`, `paymentStatus`, and the Billing Plan snapshot. For a 5% plan, the fee should be `eligibleSales × 5 / 100`. The preview should show invoice-facing amounts at 2 decimals.
+
+3. **Generate the permanent Invoice using the exact same request.** Call:
+
+    ```http
+    POST /api/super-admin/stores/{storeId}/invoices
+    ```
+
+    You should get **201 Created**. Verify the response contains a number such as:
+
+    ```text
+    INV-202608-XXXXXXXXXXXXXXX
+    ```
+
+    and check that `invoiceDate` equals `dueDate`. The generated Invoice must match a fresh server-side recalculation, not blindly copy your earlier preview.
+
+4. **Check the automatic email result.** Because generation now commits the Invoice first and then attempts delivery, one of two outcomes is valid:
+
+    - `emailStatus: "SENT"` — your test inbox should receive the email with the PDF.
+    - `emailStatus: "FAILED"` — the Invoice must still exist and generation must still have returned 201. This separation is intentional.
+
+5. **Open/download the PDF manually.** Call:
+
+    ```http
+    GET /api/super-admin/invoices/{invoiceId}/pdf
+    ```
+
+    Open the downloaded PDF and visually check: invoice number, billing period, invoice/due dates, Store/billing details, plan name/type, eligible sales, base fee, additional charge, discount, total, payment status, and notes. Claude verified the PDF structurally but deliberately left the visual review to you.
+
+6. **Compare the email attachment against the download.** The email attachment and PDF endpoint use the same PDF-generation path, so visually they should contain the same invoice information. The attachment filename should be `{invoiceNumber}.pdf`.
+
+7. **Test duplicate generation.** Send the same generation request again for the same Store + billing month. It should **not create another invoice**. You should get `INVOICE_ALREADY_EXISTS` / conflict. Then verify only one Invoice exists in the database.
+
+8. **Test Resend Email.** Call:
+
+    ```http
+    POST /api/super-admin/invoices/{invoiceId}/send-email
+    ```
+
+    On success, expect HTTP 200 and `emailStatus: "SENT"`. Verify `emailAttemptCount` increased and `emailSentAt` / `lastEmailAttemptAt` updated. It is valid to resend an already-sent Invoice too.
+
+9. **Test the failure-and-recovery path — this one is important.** Temporarily break the Resend configuration in your dev environment, for example use an invalid test API key or invalid sender config, restart the app, and generate an Invoice for a different Store/month. Expected result: Invoice generation still returns **201**, the Invoice remains in the DB, and `emailStatus` becomes `FAILED`. Restore the correct Resend configuration, then call `send-email` for that same Invoice. It should transition to `SENT`; do **not** generate the Invoice again.
+
+10. **Check email metadata after failure/retry.** After a failed attempt you should see `FAILED`, an incremented `emailAttemptCount`, a `lastEmailAttemptAt`, and a safe `emailError`. After a successful retry, the error clears and the count increments again. If a previously successful resend later fails, `emailSentAt` should retain the previous successful timestamp while the latest status becomes `FAILED`.
+
+11. **Test financial immutability.** After generating an Invoice, change the Store's Billing Plan assignment, edit the plan amount/name, change a Product price, or add another eligible Order to that historical month. Then download the Invoice PDF again. The stored financial values must remain unchanged. One known limitation: changing `StoreBillingProfile` can change the regenerated PDF's non-financial **Billed To** information because that data is currently live rather than snapshotted.
+
+12. **Test a PKR 0 Invoice.** Easiest options are a FIXED plan of `0`, a 0% plan, or a discount equal to fee + charge. Generate it and verify the Invoice is still created, `paymentStatus = PAID`, and **no Payment row exists**.
+
+13. **Test the main guards once.** Current UTC month should be rejected, future month should be rejected, an archived-but-still-assigned Billing Plan should still generate successfully, a stored percentage above 100 should be rejected defensively, and an unauthenticated request should return 401.
+
+For your first pass, I’d specifically do **one successful percentage Invoice**, **one zero Invoice**, and **one intentionally failed-email Invoice followed by Resend**. Those three scenarios exercise almost everything important without turning the manual test into a huge regression suite.
