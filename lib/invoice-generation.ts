@@ -136,7 +136,7 @@ export async function generateInvoice(
   }
 }
 
-/** JSON-safe Invoice: Decimals as strings, dates as ISO strings. */
+/** JSON-safe Invoice (incl. email-delivery state): Decimals as strings, dates ISO. */
 export function serializeInvoice(invoice: GeneratedInvoice) {
   return {
     id: invoice.id,
@@ -161,6 +161,10 @@ export function serializeInvoice(invoice: GeneratedInvoice) {
     paymentStatus: invoice.paymentStatus,
     emailStatus: invoice.emailStatus,
     createdAt: invoice.createdAt.toISOString(),
+    emailSentAt: invoice.emailSentAt?.toISOString() ?? null,
+    lastEmailAttemptAt: invoice.lastEmailAttemptAt?.toISOString() ?? null,
+    emailError: invoice.emailError,
+    emailAttemptCount: invoice.emailAttemptCount,
     updatedAt: invoice.updatedAt.toISOString(),
   };
 }

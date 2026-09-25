@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { ValidationError, readJsonObject, validationErrorResponse } from "@/lib/billing-plan";
 import { invoiceCalculationErrorResponse, invoiceInputFromBody } from "@/lib/invoice-api";
-import { generateInvoice, serializeInvoice } from "@/lib/invoice-generation";
+import { generateAndDeliverInvoice } from "@/lib/invoice-issue";
 import { requireSuperAdmin } from "@/lib/super-admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,9 @@ export const dynamic = "force-dynamic";
 // Permanently generates the Invoice for a completed UTC billing month. Every
 // financial value is recalculated server-side inside the transaction from the
 // Store's current plan and current orders; any other field in the body (e.g.
-// figures from an earlier preview) is ignored. No PDF, email or Payment.
+// figures from an earlier preview) is ignored. After the Invoice is committed the
+// PDF is emailed to the Store owner; a delivery failure still returns 201 with
+// emailStatus FAILED (use POST /invoices/:id/send-email to retry). No Payment.
 export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
@@ -30,8 +32,10 @@ export async function POST(
     }
 
     try {
-      const invoice = await generateInvoice(invoiceInputFromBody(params.storeId, body));
-      return NextResponse.json({ invoice: serializeInvoice(invoice) }, { status: 201 });
+      // Generation commits first; the email attempt happens afterwards and can
+      // fail without affecting the 201 (see delivery / invoice.emailStatus).
+      const result = await generateAndDeliverInvoice(invoiceInputFromBody(params.storeId, body));
+      return NextResponse.json(result, { status: 201 });
     } catch (error) {
       const response = invoiceCalculationErrorResponse(error);
       if (response) return response;

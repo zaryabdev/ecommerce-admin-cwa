@@ -1,6 +1,6 @@
-import { clerkClient } from "@clerk/nextjs/server";
 import { formatter } from "@/lib/utils";
 import { getResendClient } from "@/lib/resend";
+import { resolveStoreOwnerEmail as resolveRecipient } from "@/lib/email/resolve-store-owner-email";
 
 type NotificationOrder = {
     trackingId: string;
@@ -39,18 +39,6 @@ const escapeHtml = (value: unknown) =>
         .replace(/'/g, "&#039;");
 
 const display = (value: string) => value || "—";
-
-async function resolveRecipient(userId: string) {
-    const testRecipient = process.env.RESEND_TEST_RECIPIENT?.trim();
-    if (testRecipient) return testRecipient;
-
-    const user = await clerkClient.users.getUser(userId);
-    const primary = user.emailAddresses.find(
-        (email) => email.id === user.primaryEmailAddressId,
-    );
-
-    return primary?.emailAddress || user.emailAddresses[0]?.emailAddress || null;
-}
 
 export async function sendNewOrderNotification(order: NotificationOrder) {
     const from = process.env.RESEND_FROM_EMAIL?.trim();

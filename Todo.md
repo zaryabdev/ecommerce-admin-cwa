@@ -30,7 +30,9 @@
   - [x] Billing Plans + Store assignment API
   - [x] Invoice Preview / Calculation: `calculateInvoicePreview` (`lib/invoice-calculation.ts`) + `POST /api/super-admin/stores/:storeId/invoices/preview` — UTC month boundaries, completed-month rule, current plan (archived still used), FIXED / PERCENTAGE (points, 0–100), Additional Charge, Discount floor, existing-invoice guard, payment-status preview; no persistence; verified against disposable dev-DB data
   - [x] Permanent Invoice Generation: `generateInvoice` (`lib/invoice-generation.ts`) + `POST /api/super-admin/stores/:storeId/invoices` — recalculates via `calculateInvoicePreview` inside a REPEATABLE READ transaction, immutable snapshot, `INV-YYYYMM-<16 hex>` numbering (`lib/invoice-number.ts`), Store+month unique-race → `INVOICE_ALREADY_EXISTS`, zero invoice PAID, money at 2 dp ROUND_HALF_UP (preview identical), `invoiceDate = dueDate`, `emailStatus = NOT_SENT`; verified incl. concurrent race, recalculation, immutability, rollback
-  - [ ] PDF / email / payment recording / ledger
+  - [x] Invoice PDF + Email Delivery: `renderInvoicePdf`/`generateInvoicePdf` (`lib/invoice-pdf.ts`, pdf-lib, snapshot-only), `GET /api/super-admin/invoices/:id/pdf`, `deliverInvoiceEmail` (`lib/invoice-email.ts`, Resend, Store-owner recipient), Generate now emails after commit (`lib/invoice-issue.ts`; email failure still 201 with `emailStatus FAILED`), `POST /api/super-admin/invoices/:id/send-email` (manual resend; 502 on failure); email fields updated atomically; verified with mocked provider
+  - [ ] Payment recording / payment evidence / ledger
+  - [ ] Super Admin invoice management/history UI
 - [ ] 6. Super Admin Application Implementation
 
 ## Release 1 TODO — Locked Priority
