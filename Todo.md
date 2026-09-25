@@ -29,7 +29,7 @@
 - [ ] 5. Billing Plans + Store Assignment + Invoice Domain
   - [x] Billing Plans + Store assignment API
   - [x] Invoice Preview / Calculation: `calculateInvoicePreview` (`lib/invoice-calculation.ts`) + `POST /api/super-admin/stores/:storeId/invoices/preview` — UTC month boundaries, completed-month rule, current plan (archived still used), FIXED / PERCENTAGE (points, 0–100), Additional Charge, Discount floor, existing-invoice guard, payment-status preview; no persistence; verified against disposable dev-DB data
-  - [ ] Invoice Generation (persist Invoice, numbering, recalculate in transaction)
+  - [x] Permanent Invoice Generation: `generateInvoice` (`lib/invoice-generation.ts`) + `POST /api/super-admin/stores/:storeId/invoices` — recalculates via `calculateInvoicePreview` inside a REPEATABLE READ transaction, immutable snapshot, `INV-YYYYMM-<16 hex>` numbering (`lib/invoice-number.ts`), Store+month unique-race → `INVOICE_ALREADY_EXISTS`, zero invoice PAID, money at 2 dp ROUND_HALF_UP (preview identical), `invoiceDate = dueDate`, `emailStatus = NOT_SENT`; verified incl. concurrent race, recalculation, immutability, rollback
   - [ ] PDF / email / payment recording / ledger
 - [ ] 6. Super Admin Application Implementation
 

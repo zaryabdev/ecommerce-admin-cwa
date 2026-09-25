@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
 import { ValidationError, parseDecimal } from "@/lib/billing-plan";
-import { PreciseDecimal } from "@/lib/decimal";
+import { PreciseDecimal, roundMoney } from "@/lib/decimal";
 import {
   ELIGIBLE_SALES_CURRENCY,
   EligibleSalesError,
@@ -58,6 +58,8 @@ export class InvoiceCalculationError extends Error {
   }
 }
 
+const MONEY_SCALE = 2;
+
 // Years below 2000 are rejected (also avoids Date.UTC's 0-99 -> 19xx quirk).
 const MIN_BILLING_YEAR = 2000;
 const MAX_BILLING_YEAR = 9999;
@@ -103,7 +105,8 @@ const assertMonthComplete = (periodEnd: Date, now: Date) => {
   }
 };
 
-// Optional non-negative Decimal input, default 0. Reuses the Billing Plan
+// Optional non-negative Decimal input, default 0, normalized to money
+// precision (2 dp, ROUND_HALF_UP). Reuses the Billing Plan
 // decimal parser (plain decimal string/number, precision-checked) and remaps
 // its error codes to invoice-specific ones.
 function parseAdjustment(
@@ -112,7 +115,7 @@ function parseAdjustment(
 ): Decimal {
   if (value === undefined || value === null) return new PreciseDecimal(0);
   try {
-    return parseDecimal(field, value);
+    return roundMoney(parseDecimal(field, value));
   } catch (error) {
     if (error instanceof ValidationError) {
       if (error.code === "NEGATIVE_VALUE") {
@@ -298,17 +301,21 @@ export async function calculateInvoicePreview(
     throw error;
   }
 
-  // 5. Fee. Decimal only; no rounding. percentageRate is in percentage points
-  //    (5 = 5%), so it is divided by 100 and never scaled otherwise.
-  const basePlatformFee =
+  // 5. Fee. Decimal only. percentageRate is in percentage points (5 = 5%), so
+  //    it is divided by 100 and never scaled otherwise. The raw result keeps
+  //    full precision and is then normalized to money precision (2 dp,
+  //    ROUND_HALF_UP), exactly what a generated Invoice persists. Eligible
+  //    sales are NOT rounded: they are calculation evidence.
+  const rawPlatformFee =
     plan.type === "FIXED"
       ? new PreciseDecimal(plan.fixedAmount as Decimal)
       : sales.eligibleSales
           .times(new PreciseDecimal(plan.percentageRate as Decimal))
           .div(100);
+  const basePlatformFee = roundMoney(rawPlatformFee);
 
-  // 6. Adjustments and floor: the total can never be negative, and a discount
-  //    is rejected rather than clamped.
+  // 6. Adjustments and floor, on the normalized values: the total can never be
+  //    negative, and a discount is rejected rather than clamped.
   const subtotalBeforeDiscount = basePlatformFee.plus(additionalCharge);
   if (discount.greaterThan(subtotalBeforeDiscount)) {
     throw new InvoiceCalculationError(
@@ -317,6 +324,15 @@ export async function calculateInvoicePreview(
     );
   }
   const total = subtotalBeforeDiscount.minus(discount);
+
+  // Invariant persisted on every Invoice: fee + charge - discount = total,
+  // exactly, at money precision.
+  if (
+    total.decimalPlaces() > MONEY_SCALE ||
+    !total.equals(basePlatformFee.plus(additionalCharge).minus(discount))
+  ) {
+    throw new Error("Invoice total invariant violated");
+  }
 
   return {
     store: { id: store.id, name: store.name },

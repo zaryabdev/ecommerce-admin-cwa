@@ -2,22 +2,23 @@ import { NextResponse } from "next/server";
 
 import { ValidationError, readJsonObject, validationErrorResponse } from "@/lib/billing-plan";
 import { invoiceCalculationErrorResponse, invoiceInputFromBody } from "@/lib/invoice-api";
-import { calculateInvoicePreview, serializeInvoicePreview } from "@/lib/invoice-calculation";
+import { generateInvoice, serializeInvoice } from "@/lib/invoice-generation";
 import { requireSuperAdmin } from "@/lib/super-admin-auth";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/super-admin/stores/:storeId/invoices/preview
+// POST /api/super-admin/stores/:storeId/invoices
 // Body: { billingMonthYear, billingMonthMonth, additionalCharge?, discount?, notes? }
-// Calculates an invoice for the Store's CURRENT billing plan and a completed
-// UTC billing month. Read-only: nothing is persisted, and the result is not a
-// reservation (Generate must recalculate).
+// Permanently generates the Invoice for a completed UTC billing month. Every
+// financial value is recalculated server-side inside the transaction from the
+// Store's current plan and current orders; any other field in the body (e.g.
+// figures from an earlier preview) is ignored. No PDF, email or Payment.
 export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }
 ) {
   try {
-    const denied = requireSuperAdmin("SUPER_ADMIN_INVOICE_PREVIEW_POST");
+    const denied = requireSuperAdmin("SUPER_ADMIN_INVOICE_POST");
     if (denied) return denied;
 
     let body: Record<string, unknown>;
@@ -29,17 +30,15 @@ export async function POST(
     }
 
     try {
-      const calculation = await calculateInvoicePreview(
-        invoiceInputFromBody(params.storeId, body)
-      );
-      return NextResponse.json({ preview: serializeInvoicePreview(calculation) });
+      const invoice = await generateInvoice(invoiceInputFromBody(params.storeId, body));
+      return NextResponse.json({ invoice: serializeInvoice(invoice) }, { status: 201 });
     } catch (error) {
       const response = invoiceCalculationErrorResponse(error);
       if (response) return response;
       throw error;
     }
   } catch (error) {
-    console.error("[SUPER_ADMIN_INVOICE_PREVIEW_POST]", error);
+    console.error("[SUPER_ADMIN_INVOICE_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
