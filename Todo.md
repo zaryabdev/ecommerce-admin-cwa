@@ -258,17 +258,18 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
     - [x] Decimal/money handling strategy
     - [x] Migrations
 
-- [ ] **2. Billing Plans** — Admin/API
-    - [ ] Billing Plan CRUD API
-    - [ ] FIXED plan validation
-    - [ ] PERCENTAGE plan validation
-    - [ ] Store Billing Plan assignment endpoint
-    - [ ] Enforce one current plan per Store
-    - [ ] Changing current plan
-    - [ ] No plan-assignment history/effective dating for Release 1
-    - [ ] Privileged Super Admin authorization
-    - [ ] API response contracts
-    - [ ] Validation/error handling
+- [x] **2. Billing Plans** — Admin/API
+    - [x] Billing Plan CRUD API (list/get/create/update/archive; no hard delete)
+    - [x] FIXED plan validation
+    - [x] PERCENTAGE plan validation
+    - [x] Store Billing Plan assignment endpoint
+    - [x] Enforce one current plan per Store
+    - [x] Changing current plan
+    - [x] No plan-assignment history/effective dating for Release 1
+    - [x] Privileged Super Admin authorization
+    - [x] API response contracts
+    - [x] Validation/error handling
+    - Open policy (not enforced, decide before Task 6): percentage unit (5 vs 0.05), percentage upper bound (>100), whether 0 is a valid rate/fixed amount (currently allowed), plan-name uniqueness (not enforced).
 
 - [ ] **3. Billing Plans** — Super Admin UI
     - [ ] Billing Plans listing
