@@ -19,9 +19,18 @@
   - [x] Existing-order compatibility
   - [x] Current order response/display consistency
   - [x] Verification
-- [ ] 3. Monthly Eligible Sales Definition + Backend Calculation
+- [x] 3. Monthly Eligible Sales Definition + Backend Calculation
+  - [x] `calculateEligibleSales` service (`lib/eligible-sales.ts`): Store + CONFIRMED/DELIVERED + `confirmedAt` in `[start, end)`
+  - [x] Legacy NULL `confirmedAt` excluded; CANCELED excluded; `isPaid`/`createdAt` ignored
+  - [x] `Order.total` snapshot precedence, legacy `Product.price × quantity` fallback, Decimal aggregation
+  - [x] Verified against disposable dev-DB data
+  - Billing months use UTC calendar boundaries (locked); the calculator itself takes explicit instants
 - [ ] 4. Platform Authentication / Authorization + Platform APIs
 - [ ] 5. Billing Plans + Store Assignment + Invoice Domain
+  - [x] Billing Plans + Store assignment API
+  - [x] Invoice Preview / Calculation: `calculateInvoicePreview` (`lib/invoice-calculation.ts`) + `POST /api/super-admin/stores/:storeId/invoices/preview` — UTC month boundaries, completed-month rule, current plan (archived still used), FIXED / PERCENTAGE (points, 0–100), Additional Charge, Discount floor, existing-invoice guard, payment-status preview; no persistence; verified against disposable dev-DB data
+  - [ ] Invoice Generation (persist Invoice, numbering, recalculate in transaction)
+  - [ ] PDF / email / payment recording / ledger
 - [ ] 6. Super Admin Application Implementation
 
 ## Release 1 TODO — Locked Priority
