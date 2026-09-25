@@ -156,3 +156,78 @@ Use a **dev Store** and set `RESEND_TEST_RECIPIENT` to your own email before tes
 13. **Test the main guards once.** Current UTC month should be rejected, future month should be rejected, an archived-but-still-assigned Billing Plan should still generate successfully, a stored percentage above 100 should be rejected defensively, and an unauthenticated request should return 401.
 
 For your first pass, I’d specifically do **one successful percentage Invoice**, **one zero Invoice**, and **one intentionally failed-email Invoice followed by Resend**. Those three scenarios exercise almost everything important without turning the manual test into a huge regression suite.
+
+---
+
+The implementation looks solid. I’d classify **Super Admin Invoice UI / Invoice History as implementation-complete, with manual acceptance testing still pending**. Both repos pass TypeScript, lint and build, and Admin’s new read endpoints passed 10/10 disposable-data checks.
+
+The UI now gives you the complete surface you wanted: `/invoices`, invoice detail, Store invoice history, Preview, Generate & Send, PDF download/open, failed-email handling, and Resend. The Generate dialog also correctly distinguishes a successfully created invoice whose email failed — it does **not** offer Generate again and instead gives Resend/PDF/View actions.
+
+### What I would test first
+
+You no longer need Postman for the main flow. In the UI, do these scenarios in this order:
+
+1. **PERCENTAGE invoice**
+
+    - assign a 5% or 2.5% plan
+    - open Generate Invoice
+    - select a completed month
+    - Preview
+    - verify eligible sales and calculation
+    - Generate & Send
+    - verify email
+    - Download PDF
+    - open Invoice detail
+
+2. **FIXED invoice**
+
+    - assign a fixed plan
+    - preview and generate
+    - confirm eligible sales are shown but do not affect the fixed fee
+
+3. **Additional Charge + Discount**
+
+    - e.g. charge `250.50`
+    - valid discount
+    - then try a discount larger than fee + charge and confirm rejection.
+
+4. **Zero invoice**
+
+    - use FIXED `0`, 0%, or full discount
+    - verify Invoice is created as `PAID`
+
+5. **Failed email → Resend**
+
+    - deliberately break the email configuration in dev
+    - Generate
+    - verify UI says **invoice generated successfully, but email delivery failed**
+    - restore email config
+    - Resend
+    - verify status moves from FAILED → SENT and attempt count increments.
+
+6. **Duplicate month**
+
+    - try Preview/Generate again for the same Store/month
+    - confirm the UI clearly says an invoice already exists and the existing row remains visible.
+
+7. **Archived assigned plan**
+
+    - archive the plan while it remains assigned
+    - Preview should still work and display the archived-assignment note.
+
+8. **Refresh/persistence**
+
+    - reload `/invoices`
+    - reload invoice detail
+    - reload Store detail
+    - verify history, `?storeId=` filter and pagination remain correct.
+
+### One documentation issue
+
+Your **AI-context update that is already running may now be one task behind**, because this Invoice UI finished after you started that documentation refresh. Claude explicitly says this latest work was **not** added to `ecommerce_ai_context`; the newly added invoice read APIs and Super Admin UI still need to be recorded.
+
+Let the current context update finish first. Afterward, we should give Claude a **small follow-up context-sync prompt** containing only this new Invoice UI/read-API work rather than rerunning the whole large documentation task.
+
+Also, Admin's `Todo.md` still contains stale granular sections farther down even though the top-level invoice items are updated. That is cleanup rather than a feature blocker, but I would fix it before Release 1 so the checklist remains trustworthy.
+
+---
