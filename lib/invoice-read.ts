@@ -1,5 +1,6 @@
 import prismadb from "@/lib/prismadb";
 import { serializeInvoice } from "@/lib/invoice-generation";
+import { serializePayment } from "@/lib/payment";
 
 // Read-only Invoice queries for the privileged Super Admin API. Everything
 // comes from the persisted Invoice snapshot; nothing is recalculated.
@@ -70,15 +71,26 @@ export async function listInvoices(
   };
 }
 
-/** Full stored snapshot (incl. email-delivery state) plus Store display info. */
+/**
+ * Full stored snapshot (incl. email-delivery state) plus Store display info
+ * and the recorded Payment, if any. Payment Evidence is intentionally not
+ * included yet.
+ */
 export async function getInvoiceDetail(
   invoiceId: string,
   db: typeof prismadb = prismadb
 ) {
   const invoice = await db.invoice.findUnique({
     where: { id: invoiceId },
-    include: { store: { select: { id: true, name: true } } },
+    include: {
+      store: { select: { id: true, name: true } },
+      payment: true,
+    },
   });
   if (!invoice) return null;
-  return { ...serializeInvoice(invoice), store: invoice.store };
+  return {
+    ...serializeInvoice(invoice),
+    store: invoice.store,
+    payment: invoice.payment ? serializePayment(invoice.payment) : null,
+  };
 }
