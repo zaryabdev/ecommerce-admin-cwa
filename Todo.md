@@ -449,3 +449,46 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
     - [ ] Direct refresh/error states
     - [ ] Responsive UI
     - [ ] Lint/typecheck/build in affected repos
+
+## Storefront Management / Future Commerce Enhancements
+
+Admin/CMS/backend-owned work supporting the Storvia Storefront UI/UX redesign (`ecommerce-store-cwa`). Customer-facing Storefront rendering itself is tracked in that repo's own `Todo.md`, not here.
+
+Constraints that apply throughout this section:
+- COD remains the only active checkout flow until Online Payment Gateway work below ships.
+- Only one theme (**Default**) exists for Phase 1 — do not build theme-switching/persistence infrastructure while only one theme exists.
+- The existing Category model already supports `parentId`; do not introduce a separate `Type`/`Subtype` model.
+- Keep Storvia's homepage opinionated and merchant-configurable within Storvia-controlled structure — not an arbitrary page builder.
+
+### Phase 1 — Storefront Foundation (current priority)
+
+- [ ] Storefront/Theme UI showing the existing Default theme as active, with messaging that additional themes may be introduced later (no theme-switching/persistence infrastructure yet)
+- [ ] Review and clean up existing per-Store branding management, keeping branding Store-specific
+- [ ] Ensure current branding data (logo, brand color) correctly feeds the redesigned Storefront
+
+*Note: existing per-Store branding fetch (logo/name) already exists and is consumed by the Storefront navbar — this is a review/cleanup task, not new capability.*
+
+### Phase 2 — Homepage Content Management (planned)
+
+- [ ] Homepage Carousel management: slide image, heading, optional supporting text, CTA label, CTA destination, ordering/reordering, validation
+- [ ] Reusable multi-image uploader component shared where appropriate — Logo and Carousel remain separate domain concepts, not a repurposed Logo uploader
+- [ ] Homepage merchandising/content configuration: New Arrivals visibility, Featured Products selection, Shop by Category configuration, promotional/banner content
+
+*Note: `Product.isFeatured` already exists and is the intended basis for Featured Products — no new flag needed.*
+
+### Phase 3 — Commerce / Marketing Enhancements (future commerce)
+
+- [ ] Sale Pricing: authoritative original-price/sale-price model (not a Storefront-only display fake)
+- [ ] Discounts: proper discount semantics, modeled separately from marketing banners
+- [ ] Coupons: codes, validation, authoritative server-side discount calculation, checkout integration, immutable Order monetary snapshots reflecting applied discounts
+- [ ] Online Payment Gateway / Card Payments: real payment capability with correct backend/payment state (provider TBD at implementation time, Stripe previously removed and may be reconsidered); keep COD available alongside it unless a later product decision changes that
+
+### Phase 4 — Platform Customization (future)
+
+- [ ] Additional Storefront themes
+- [ ] Theme-selection persistence, once more than one theme exists
+- [ ] Richer appearance customization: controlled typography/color options
+- [ ] Homepage section configuration/reordering
+- [ ] Domain-management/publishing automation
+- [ ] More advanced merchant storefront configuration
+- [ ] Low priority: optional controlled Store/page background image under appearance configuration (must not evolve into arbitrary CSS/page-builder functionality; checkout keeps a controlled neutral appearance)
