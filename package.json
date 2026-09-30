@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "seed:demo": "node scripts/seed-demo-data.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

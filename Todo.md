@@ -463,8 +463,8 @@ Constraints that apply throughout this section:
 ### Phase 1 — Storefront Foundation (current priority)
 
 - [x] Storefront/Theme UI showing the existing Default theme as active, with messaging that additional themes may be introduced later (no theme-switching/persistence infrastructure yet)
-- [ ] Review and clean up existing per-Store branding management, keeping branding Store-specific
-- [ ] Ensure current branding data (logo, brand color) correctly feeds the redesigned Storefront
+- [x] Review and clean up existing per-Store branding management, keeping branding Store-specific
+- [ ] Ensure current branding data (logo, brand color) correctly feeds the redesigned Storefront — **logo verified correct** (upload/replace/remove all persist and render correctly in the Storefront header); left unchecked because **no brand-color field exists anywhere in source** — not invented as part of this cleanup, per the task's explicit "audit, don't invent" instruction
 
 *Note: existing per-Store branding fetch (logo/name) already exists and is consumed by the Storefront navbar — this is a review/cleanup task, not new capability.*
 
