@@ -462,7 +462,7 @@ Constraints that apply throughout this section:
 
 ### Phase 1 — Storefront Foundation (current priority)
 
-- [ ] Storefront/Theme UI showing the existing Default theme as active, with messaging that additional themes may be introduced later (no theme-switching/persistence infrastructure yet)
+- [x] Storefront/Theme UI showing the existing Default theme as active, with messaging that additional themes may be introduced later (no theme-switching/persistence infrastructure yet)
 - [ ] Review and clean up existing per-Store branding management, keeping branding Store-specific
 - [ ] Ensure current branding data (logo, brand color) correctly feeds the redesigned Storefront
 

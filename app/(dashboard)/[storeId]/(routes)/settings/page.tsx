@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs";
 import prismadb from "@/lib/prismadb";
 
 import { SettingsForm } from "./components/settings-form";
+import { ThemeSection } from "./components/theme-section";
 import { BillingForm } from "./components/billing-form";
 
 const SettingsPage = async ({
@@ -32,6 +33,9 @@ const SettingsPage = async ({
     <div className="flex-col">
       <div className="flex-1 space-y-4 p-8 pt-6">
         <SettingsForm initialData={store} />
+        <div className="border-t pt-8">
+          <ThemeSection />
+        </div>
         <div className="border-t pt-8">
           <BillingForm />
         </div>
