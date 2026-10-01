@@ -249,7 +249,7 @@ Yes. I’d make **Product Quantity / Stock** the next concrete Release 1 task an
 
 Single cross-repo source of truth for platform billing. Implement sequentially, module by module. Only check an item once implemented AND verified — not on attempt.
 
-Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ecommerce-super-admin frontend. Both listed where a task spans repos.
+Labels: **Admin/API** = storvia-admin backend/API. **Super Admin UI** = storvia-super-admin frontend. Both listed where a task spans repos.
 
 - [x] **1. Billing Domain / Prisma Design** — Admin/API
     - [x] `BillingPlan` model
@@ -452,7 +452,7 @@ Labels: **Admin/API** = ecommerce-admin-cwa backend/API. **Super Admin UI** = ec
 
 ## Storefront Management / Future Commerce Enhancements
 
-Admin/CMS/backend-owned work supporting the Storvia Storefront UI/UX redesign (`ecommerce-store-cwa`). Customer-facing Storefront rendering itself is tracked in that repo's own `Todo.md`, not here.
+Admin/CMS/backend-owned work supporting the Storvia Storefront UI/UX redesign (`storvia-storefront`). Customer-facing Storefront rendering itself is tracked in that repo's own `Todo.md`, not here.
 
 Constraints that apply throughout this section:
 - COD remains the only active checkout flow until Online Payment Gateway work below ships.

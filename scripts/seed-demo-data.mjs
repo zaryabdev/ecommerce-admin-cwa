@@ -49,7 +49,7 @@ function assertSafeToRun() {
 // The only 10 already-uploaded, verified-live Cloudinary URLs found across
 // the entire dev database (across all Stores) at the time this script was
 // written — every URL confirmed HTTP 200 on res.cloudinary.com, the exact
-// domain already whitelisted in ecommerce-store-cwa/next.config.js. This
+// domain already whitelisted in storvia-storefront/next.config.js. This
 // account's Cloudinary "fetch" delivery (which would allow referencing any
 // external stock photo through this same allowed domain) was tested and
 // confirmed disabled (401). No new image hosting was introduced — these

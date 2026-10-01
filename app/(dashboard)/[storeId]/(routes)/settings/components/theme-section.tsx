@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
  * theme, so "Default" / "Active" is a static fact of this release, not a
  * stored preference. There is nothing to persist, select, or submit here —
  * no form, no API call, no schema field. See decisions/DECISIONS.md in
- * ecommerce_ai_context for the durable "one theme for Release 1" decision.
+ * storvia-ai-context for the durable "one theme for Release 1" decision.
  */
 export function ThemeSection() {
     return (
