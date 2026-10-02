@@ -1,4 +1,5 @@
 import { deliverInvoiceEmail, type InvoiceEmailDeps } from "@/lib/invoice-email";
+import { EmailDeliveryBlockedError } from "@/lib/email/email-delivery";
 import { generateInvoice, serializeInvoice } from "@/lib/invoice-generation";
 import type { InvoiceCalculationInput } from "@/lib/invoice-calculation";
 
@@ -16,6 +17,14 @@ export async function generateAndDeliverInvoice(
     const { invoice, delivery } = await deliverInvoiceEmail(created.id, deliveryDeps);
     return { invoice: serializeInvoice(invoice), delivery };
   } catch (error) {
+    // Store has email blocked: the Invoice is created and stays NOT_SENT. This
+    // is intentional suppression, not a failure.
+    if (error instanceof EmailDeliveryBlockedError) {
+      return {
+        invoice: serializeInvoice(created),
+        delivery: { status: "BLOCKED" as const, error: null },
+      };
+    }
     // Even delivery bookkeeping failing (e.g. DB hiccup) must not turn a
     // successful generation into an error response.
     console.error("[INVOICE_ISSUE] delivery step failed unexpectedly", error);

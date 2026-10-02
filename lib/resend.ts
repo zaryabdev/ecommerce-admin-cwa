@@ -1,3 +1,5 @@
+// Raw provider client. Do not send from here directly: every send path must
+// first check the per-Store kill switch (lib/email/email-delivery.ts).
 import { Resend } from "resend";
 
 export function getResendClient() {

@@ -14,7 +14,9 @@ export const dynamic = "force-dynamic";
 // Store's current plan and current orders; any other field in the body (e.g.
 // figures from an earlier preview) is ignored. After the Invoice is committed the
 // PDF is emailed to the Store owner; a delivery failure still returns 201 with
-// emailStatus FAILED (use POST /invoices/:id/send-email to retry). No Payment.
+// emailStatus FAILED (use POST /invoices/:id/send-email to retry). If the Store
+// has email delivery blocked, still 201 with delivery.status BLOCKED and the
+// Invoice left NOT_SENT (no provider call, no attempt recorded). No Payment.
 export async function POST(
   req: Request,
   { params }: { params: { storeId: string } }

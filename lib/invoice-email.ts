@@ -1,3 +1,4 @@
+import { EmailDeliveryBlockedError, isStoreEmailDeliveryBlocked } from "@/lib/email/email-delivery";
 import { resolveStoreOwnerEmail } from "@/lib/email/resolve-store-owner-email";
 import {
   InvoiceNotFoundError,
@@ -16,6 +17,8 @@ import { getResendClient } from "@/lib/resend";
 //   lastEmailAttemptAt most recent attempt, success or failure
 //   emailAttemptCount  total attempts, incremented atomically (never lost)
 //   emailError         latest failure summary (safe, bounded); cleared on success
+// A Store with emailDeliveryBlocked is rejected up front with
+// EmailDeliveryBlockedError and none of these fields are touched.
 //
 // Concurrency: no transaction spans the external call. Each attempt first
 // records itself with an atomic increment, then finishes with a separate
@@ -79,9 +82,16 @@ export async function deliverInvoiceEmail(
   // 1. The Invoice must already exist. Nothing else is read for financials.
   const invoice = await db.invoice.findUnique({
     where: { id: invoiceId },
-    select: { id: true },
+    select: { id: true, storeId: true },
   });
   if (!invoice) throw new InvoiceNotFoundError();
+
+  // 1b. Per-Store kill switch. Rejected before anything is recorded or sent:
+  //     no attempt is counted, no status changes, Resend is never touched.
+  //     Not a delivery failure, so it is thrown rather than returned as FAILED.
+  if (await isStoreEmailDeliveryBlocked(invoice.storeId, db)) {
+    throw new EmailDeliveryBlockedError();
+  }
 
   // 2. Record the attempt atomically before doing any work (also counts
   //    attempts that fail before reaching the provider).

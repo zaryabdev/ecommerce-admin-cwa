@@ -6,6 +6,7 @@ import prismadb from "@/lib/prismadb";
 import { SettingsForm } from "./components/settings-form";
 import { ThemeSection } from "./components/theme-section";
 import { BillingForm } from "./components/billing-form";
+import { EmailDeliverySection } from "./components/email-delivery-section";
 
 const SettingsPage = async ({
   params
@@ -35,6 +36,12 @@ const SettingsPage = async ({
         <SettingsForm initialData={store} />
         <div className="border-t pt-8">
           <ThemeSection />
+        </div>
+        <div className="border-t pt-8">
+          <EmailDeliverySection
+            storeId={store.id}
+            initialBlocked={store.emailDeliveryBlocked}
+          />
         </div>
         <div className="border-t pt-8">
           <BillingForm />

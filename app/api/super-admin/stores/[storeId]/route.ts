@@ -63,6 +63,7 @@ export async function GET(
         name: true,
         userId: true,
         createdAt: true,
+        emailDeliveryBlocked: true,
         _count: { select: { orders: true } },
       },
     });
@@ -137,6 +138,7 @@ export async function GET(
         id: store.id,
         name: store.name,
         createdAt: store.createdAt,
+        emailDeliveryBlocked: store.emailDeliveryBlocked,
         orderCount: store._count.orders,
         salesTotal: salesTotal.toFixed(),
         currency,

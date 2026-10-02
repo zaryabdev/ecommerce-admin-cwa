@@ -1,8 +1,10 @@
 import { formatter } from "@/lib/utils";
+import { isStoreEmailDeliveryBlocked } from "@/lib/email/email-delivery";
 import { getResendClient } from "@/lib/resend";
 import { resolveStoreOwnerEmail as resolveRecipient } from "@/lib/email/resolve-store-owner-email";
 
 type NotificationOrder = {
+    storeId: string;
     trackingId: string;
     status: string;
     totalPrice: number;
@@ -41,6 +43,14 @@ const escapeHtml = (value: unknown) =>
 const display = (value: string) => value || "—";
 
 export async function sendNewOrderNotification(order: NotificationOrder) {
+    // Per-Store kill switch, checked before the provider client is resolved.
+    if (await isStoreEmailDeliveryBlocked(order.storeId)) {
+        console.info(
+            `Order notification skipped: email delivery is blocked for store ${order.storeId}.`,
+        );
+        return;
+    }
+
     const from = process.env.RESEND_FROM_EMAIL?.trim();
     const resend = getResendClient();
 

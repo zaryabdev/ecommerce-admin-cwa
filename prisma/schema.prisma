@@ -25,6 +25,11 @@ model Store {
   sizes               Size[]               @relation("StoreToSize")
   billingProfile      StoreBillingProfile?
 
+  // Per-Store email kill switch. When true, no Storvia-generated email for this
+  // Store is sent (new-order notifications, invoice emails). Private: never
+  // returned by public Storefront APIs.
+  emailDeliveryBlocked Boolean @default(false)
+
   // Current Billing Plan assignment (Release 1: no history/effective-dating).
   billingPlanId String?
   billingPlan   BillingPlan? @relation("StoreCurrentBillingPlan", fields: [billingPlanId], references: [id], onDelete: Restrict)

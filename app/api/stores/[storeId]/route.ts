@@ -83,8 +83,6 @@ export async function GET(
     _req: Request,
     { params }: { params: { storeId: string } },
 ) {
-    console.log("RequestHit");
-
     try {
         if (!params.storeId) {
             return new NextResponse("Store id is required", { status: 400 });
