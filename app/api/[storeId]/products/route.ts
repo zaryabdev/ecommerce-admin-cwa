@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 
 import prismadb from '@/lib/prismadb';
+import { buildProductSearchFilter, parseSearchTerms } from '@/lib/product-search';
 
 export async function POST(
   req: Request,
@@ -100,6 +101,8 @@ export async function GET(
     const sizeId = searchParams.get('sizeId') || undefined;
     const isFeatured = searchParams.get('isFeatured');
     const includeChildCategories = searchParams.get('includeChildCategories') === 'true';
+    // Optional Storefront search text; missing/blank means no search filter.
+    const searchTerms = parseSearchTerms(searchParams.get('q'));
 
     if (!params.storeId) {
       return new NextResponse("Store id is required", { status: 400 });
@@ -139,6 +142,8 @@ export async function GET(
         sizeId,
         isFeatured: isFeatured ? true : undefined,
         isArchived: false,
+        // Search composes with every filter above (AND). Empty => no-op.
+        AND: buildProductSearchFilter(searchTerms),
       },
       include: {
         images: true,

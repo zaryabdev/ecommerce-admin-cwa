@@ -5,16 +5,27 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
   req: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string, storeId: string } }
 ) {
   try {
     if (!params.productId) {
       return new NextResponse("Product id is required", { status: 400 });
     }
 
-    const product = await prismadb.product.findUnique({
+    if (!params.storeId) {
+      return new NextResponse("Store id is required", { status: 400 });
+    }
+
+    // Public Storefront read: must be Store-scoped and never expose an
+    // archived Product (same rules as the list route). `findFirst` because
+    // Prisma 4.16 `findUnique` cannot filter on non-unique fields. A miss
+    // (unknown / other Store / archived) keeps returning HTTP 200 with a
+    // `null` body — Storefront's getProduct() relies on that contract.
+    const product = await prismadb.product.findFirst({
       where: {
-        id: params.productId
+        id: params.productId,
+        storeId: params.storeId,
+        isArchived: false,
       },
       include: {
         images: true,
