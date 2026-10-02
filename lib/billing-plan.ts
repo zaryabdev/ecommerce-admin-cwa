@@ -100,8 +100,9 @@ export function parseType(value: unknown): BillingPlanType {
 }
 
 // Accepts a plain decimal string ("1500", "2.5") or a finite JSON number.
-// Rejects malformed input and negatives. Zero is accepted; upper bounds and
-// the percentage unit are intentionally NOT enforced (not yet specified).
+// Rejects malformed input and negatives. Zero is accepted. The generic
+// upper bound is not enforced here; the percentage range is enforced by
+// parsePercentageRate below.
 export function parseDecimal(field: string, value: unknown): Decimal {
   let text: string;
 
@@ -140,6 +141,23 @@ export function parseDecimal(field: string, value: unknown): Decimal {
   }
 
   return new Decimal(text);
+}
+
+const MAX_PERCENTAGE_RATE = 100;
+
+// A percentage rate is in percentage points (5 = 5%) and must satisfy the
+// inclusive range 0 <= rate <= 100. Decimal-only comparison (no JS floats).
+// Mirrors the defensive check in lib/invoice-calculation.ts, which is kept
+// as defense in depth for any already-persisted invalid value.
+export function parsePercentageRate(value: unknown): Decimal {
+  const rate = parseDecimal("percentageRate", value);
+  if (rate.greaterThan(MAX_PERCENTAGE_RATE)) {
+    throw new ValidationError(
+      "INVALID_PERCENTAGE_RATE",
+      `percentageRate must be between 0 and ${MAX_PERCENTAGE_RATE}.`
+    );
+  }
+  return rate;
 }
 
 export type PlanRule = {
@@ -181,7 +199,10 @@ export function resolveRule(
         `${activeField} is required for a ${type} plan.`
       );
     }
-    active = parseDecimal(activeField, body[activeField]);
+    active =
+      type === "PERCENTAGE"
+        ? parsePercentageRate(body[activeField])
+        : parseDecimal(activeField, body[activeField]);
   } else if (existing && existing.type === type) {
     active = existing[activeField];
   } else {
