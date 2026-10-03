@@ -62,10 +62,11 @@ export function EmailDeliverySection({
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
             >
-                <div className="pt-6 space-x-2 flex items-center justify-end w-full">
+                <div className="flex w-full flex-col-reverse items-stretch gap-2 pt-6 sm:flex-row sm:items-center sm:justify-end sm:space-x-2">
                     <Button
                         disabled={loading}
                         variant="outline"
+                        className="w-full sm:w-auto"
                         onClick={() => setConfirmOpen(false)}
                     >
                         Cancel
@@ -73,6 +74,7 @@ export function EmailDeliverySection({
                     <Button
                         disabled={loading}
                         variant="destructive"
+                        className="w-full sm:w-auto"
                         onClick={() => update(true)}
                     >
                         Block all email
@@ -85,10 +87,10 @@ export function EmailDeliverySection({
             />
             <Separator />
             <Card>
-                <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-                    <div>
-                        <CardTitle>Store email</CardTitle>
-                        <CardDescription>
+                <CardHeader className="flex min-w-0 flex-col items-start justify-between gap-3 space-y-0 sm:flex-row sm:items-start sm:gap-4">
+                    <div className="min-w-0">
+                        <CardTitle className="break-words">Store email</CardTitle>
+                        <CardDescription className="break-words">
                             Blocks all Storvia-generated email for this Store,
                             including new-order notifications and invoice emails.
                             Orders and invoices will continue to work normally.
@@ -101,11 +103,12 @@ export function EmailDeliverySection({
                         {blocked ? "Blocked" : "Active"}
                     </Badge>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="min-w-0">
                     {blocked ? (
                         <Button
                             disabled={loading}
                             variant="outline"
+                            className="w-full sm:w-auto"
                             onClick={() => update(false)}
                         >
                             Allow all email
@@ -114,6 +117,7 @@ export function EmailDeliverySection({
                         <Button
                             disabled={loading}
                             variant="destructive"
+                            className="w-full sm:w-auto"
                             onClick={() => setConfirmOpen(true)}
                         >
                             Block all email

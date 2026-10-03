@@ -132,7 +132,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ initialData }) => {
                             </FormItem>
                         )}
                     />
-                    <div className="grid grid-cols-3 gap-8">
+                    <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
                         <FormField
                             control={form.control}
                             name="name"
@@ -153,7 +153,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ initialData }) => {
                     </div>
                     <Button
                         disabled={loading}
-                        className="ml-auto"
+                        className="w-full sm:ml-auto sm:w-auto"
                         type="submit"
                     >
                         Save changes

@@ -25,17 +25,17 @@ export function ThemeSection() {
             />
             <Separator />
             <Card>
-                <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-                    <div>
-                        <CardTitle>Default</CardTitle>
-                        <CardDescription>
+                <CardHeader className="flex min-w-0 flex-col items-start justify-between gap-3 space-y-0 sm:flex-row sm:items-start sm:gap-4">
+                    <div className="min-w-0">
+                        <CardTitle className="break-words">Default</CardTitle>
+                        <CardDescription className="break-words">
                             Storvia&apos;s current Storefront theme
                         </CardDescription>
                     </div>
                     <Badge className="shrink-0">Active</Badge>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="break-words text-sm text-muted-foreground">
                         Your Storefront is using the Default theme. There is nothing
                         you need to configure right now. More themes may become
                         available in future releases.
