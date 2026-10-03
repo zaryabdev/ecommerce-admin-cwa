@@ -7,8 +7,13 @@ import { cn } from "@/lib/utils"
 
 export function MainNav({
   className,
+  onNavigate,
+  mobile = false,
   ...props
-}: React.HTMLAttributes<HTMLElement>) {
+}: React.HTMLAttributes<HTMLElement> & {
+  onNavigate?: () => void;
+  mobile?: boolean;
+}) {
   const pathname = usePathname();
   const params = useParams();
 
@@ -57,7 +62,11 @@ export function MainNav({
 
   return (
     <nav
-      className={cn("flex items-center space-x-4 lg:space-x-6", className)}
+      className={cn(
+        "flex items-center space-x-4 lg:space-x-6",
+        mobile && "flex-col items-stretch space-x-0 space-y-1",
+        className
+      )}
       {...props}
     >
       {routes.map((route) => (
@@ -66,8 +75,10 @@ export function MainNav({
           href={route.href}
           className={cn(
             'text-sm font-medium transition-colors hover:text-primary',
-            route.active ? 'text-black dark:text-white' : 'text-muted-foreground'
+            route.active ? 'text-black dark:text-white' : 'text-muted-foreground',
+            mobile && 'rounded-md px-3 py-2 text-base hover:bg-accent'
           )}
+          onClick={onNavigate}
         >
           {route.label}
       </Link>

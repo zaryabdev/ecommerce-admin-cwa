@@ -26,9 +26,10 @@ type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
 
 interface StoreSwitcherProps extends PopoverTriggerProps {
   items: Record<string, any>[];
+  onNavigate?: () => void;
 }
 
-export default function StoreSwitcher({ className, items = [] }: StoreSwitcherProps) {
+export default function StoreSwitcher({ className, items = [], onNavigate }: StoreSwitcherProps) {
   const storeModal = useStoreModal();
   const params = useParams();
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function StoreSwitcher({ className, items = [] }: StoreSwitcherPr
 
   const onStoreSelect = (store: { value: string, label: string }) => {
     setOpen(false);
+    onNavigate?.();
     router.push(`/${store.value}`);
   };
 
@@ -95,6 +97,7 @@ export default function StoreSwitcher({ className, items = [] }: StoreSwitcherPr
               <CommandItem
                 onSelect={() => {
                   setOpen(false)
+                  onNavigate?.()
                   storeModal.onOpen()
                 }}
               >

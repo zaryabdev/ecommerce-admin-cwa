@@ -63,7 +63,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <button className="p-2">
+                    <button
+                        className="h-10 w-10 p-0 sm:h-8 sm:w-8"
+                        aria-label="Open order actions"
+                    >
                         <MoreHorizontal className="w-4 h-4" />
                     </button>
                 </DropdownMenuTrigger>

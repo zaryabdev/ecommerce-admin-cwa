@@ -73,6 +73,12 @@ body,
     --ring: 217.2 32.6% 17.5%;
   }
 }
+
+@layer components {
+  .heading-action-row {
+    @apply flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+}
  
 @layer base {
   * {

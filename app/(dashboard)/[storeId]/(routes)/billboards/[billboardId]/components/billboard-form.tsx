@@ -99,7 +99,7 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
       onConfirm={onDelete}
       loading={loading}
     />
-     <div className="flex items-center justify-between">
+     <div className="heading-action-row">
         <Heading title={title} description={description} />
         {initialData && (
           <Button
