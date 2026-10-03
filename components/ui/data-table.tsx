@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, ReactNode, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -26,12 +26,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[],
   searchKey: string;
+  mobileRow?: (data: TData) => ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  mobileRow,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
@@ -45,6 +47,7 @@ export function DataTable<TData, TValue>({
       columnFilters,
     }
   });
+  const rows = table.getRowModel().rows;
 
   return (
     <div>
@@ -58,7 +61,20 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
-      <div className="rounded-md border">
+      {mobileRow && (
+        <div className="space-y-3 md:hidden">
+          {rows.length ? (
+            rows.map((row) => (
+              <Fragment key={row.id}>{mobileRow(row.original)}</Fragment>
+            ))
+          ) : (
+            <div className="flex h-24 items-center justify-center rounded-md border text-center text-sm">
+              No results.
+            </div>
+          )}
+        </div>
+      )}
+      <div className={mobileRow ? "hidden rounded-md border md:block" : "rounded-md border"}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -79,8 +95,8 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+            {rows.length ? (
+              rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

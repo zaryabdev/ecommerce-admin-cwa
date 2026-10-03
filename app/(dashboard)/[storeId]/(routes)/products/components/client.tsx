@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ApiList } from "@/components/ui/api-list";
 
 import { ProductColumn, columns } from "./columns";
+import { ProductMobileRow } from "./mobile-list";
 
 interface ProductsClientProps {
   data: ProductColumn[];
@@ -30,7 +31,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={columns} data={data} />
+      <DataTable
+        searchKey="name"
+        columns={columns}
+        data={data}
+        mobileRow={(product) => <ProductMobileRow product={product} />}
+      />
       <Heading title="API" description="API Calls for Products" />
       <Separator />
       <ApiList entityName="products" entityIdName="productId" />

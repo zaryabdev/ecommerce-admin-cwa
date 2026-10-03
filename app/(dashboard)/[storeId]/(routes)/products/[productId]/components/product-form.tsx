@@ -183,7 +183,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </FormItem>
             )}
           />
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
             <FormField
               control={form.control}
               name="name"
@@ -231,8 +231,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Category</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value} placeholder="Select a category" />
+                      <SelectTrigger className="min-w-0">
+                        <SelectValue className="min-w-0 truncate" defaultValue={field.value} placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -253,8 +253,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Size</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value} placeholder="Select a size" />
+                      <SelectTrigger className="min-w-0">
+                        <SelectValue className="min-w-0 truncate" defaultValue={field.value} placeholder="Select a size" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -275,8 +275,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Color</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value} placeholder="Select a color" />
+                      <SelectTrigger className="min-w-0">
+                        <SelectValue className="min-w-0 truncate" defaultValue={field.value} placeholder="Select a color" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -301,7 +301,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
+                  <div className="min-w-0 space-y-1 leading-none">
                     <FormLabel>
                       Featured
                     </FormLabel>
@@ -324,7 +324,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
+                  <div className="min-w-0 space-y-1 leading-none">
                     <FormLabel>
                       Archived
                     </FormLabel>

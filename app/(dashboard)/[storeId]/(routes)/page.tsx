@@ -29,38 +29,46 @@ const DashboardPage: React.FC<DashboardPageProps> = async ({
       <div className="flex-1 space-y-4 p-4 pt-4 sm:p-6 sm:pt-6 lg:p-8 lg:pt-6">
         <Heading title="Dashboard" description="Overview of your store" />
         <Separator />
-        <div className="grid gap-4 grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card className="min-w-0">
+            <CardHeader className="flex min-w-0 flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="min-w-0 break-words text-sm font-medium">
                 Total Revenue
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatter.format(totalRevenue)}</div>
+              <div className="min-w-0 break-words text-2xl font-bold [overflow-wrap:anywhere]">
+                {formatter.format(totalRevenue)}
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <Card className="min-w-0">
+            <CardHeader className="flex min-w-0 flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="min-w-0 break-words text-sm font-medium">Sales</CardTitle>
+              <CreditCard className="h-4 w-4 shrink-0 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+{salesCount}</div>
+              <div className="min-w-0 break-words text-2xl font-bold [overflow-wrap:anywhere]">
+                +{salesCount}
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Products In Stock</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+          <Card className="min-w-0">
+            <CardHeader className="flex min-w-0 flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="min-w-0 break-words text-sm font-medium">
+                Products In Stock
+              </CardTitle>
+              <Package className="h-4 w-4 shrink-0 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stockCount}</div>
+              <div className="min-w-0 break-words text-2xl font-bold [overflow-wrap:anywhere]">
+                {stockCount}
+              </div>
             </CardContent>
           </Card>
         </div>
-        <Card className="col-span-4">
+        <Card className="col-span-4 min-w-0">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
           </CardHeader>
