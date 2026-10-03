@@ -5,16 +5,25 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
   req: Request,
-  { params }: { params: { categoryId: string } }
+  { params }: { params: { categoryId: string, storeId: string } }
 ) {
   try {
     if (!params.categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
     }
 
-    const category = await prismadb.category.findUnique({
+    if (!params.storeId) {
+      return new NextResponse("Store id is required", { status: 400 });
+    }
+
+    // Public Storefront read: must be Store-scoped. `findFirst` because
+    // Prisma `findUnique` cannot filter on non-unique fields. A miss
+    // (unknown / other Store) keeps returning HTTP 200 with a `null` body —
+    // Storefront's getCategory() relies on that contract.
+    const category = await prismadb.category.findFirst({
       where: {
-        id: params.categoryId
+        id: params.categoryId,
+        storeId: params.storeId,
       },
       include: {
         billboard: true
