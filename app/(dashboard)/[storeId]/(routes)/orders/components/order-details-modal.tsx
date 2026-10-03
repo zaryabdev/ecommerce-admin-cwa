@@ -19,55 +19,55 @@ export default function OrderDetailsModal({
             title="Order details"
             description=""
         >
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
                 {/* Top meta */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="p-3 border rounded-xl">
+                    <div className="min-w-0 rounded-xl border p-3">
                         <div className="text-xs text-gray-500">Tracking</div>
-                        <div className="mt-1 font-mono text-sm">
+                        <div className="mt-1 break-words font-mono text-sm [overflow-wrap:anywhere]">
                             {order.trackingId}
                         </div>
                     </div>
 
-                    <div className="p-3 border rounded-xl">
+                    <div className="min-w-0 rounded-xl border p-3">
                         <div className="text-xs text-gray-500">Status</div>
-                        <div className="mt-1 text-sm font-medium">
+                        <div className="mt-1 break-words text-sm font-medium [overflow-wrap:anywhere]">
                             {order.status} • {order.isPaid ? "Paid" : "Unpaid"}
                         </div>
                     </div>
 
-                    <div className="p-3 border rounded-xl">
+                    <div className="min-w-0 rounded-xl border p-3">
                         <div className="text-xs text-gray-500">
                             Payment method
                         </div>
-                        <div className="mt-1 text-sm font-medium">
+                        <div className="mt-1 break-words text-sm font-medium [overflow-wrap:anywhere]">
                             {order.paymentMethod}
                         </div>
                     </div>
 
-                    <div className="p-3 border rounded-xl">
+                    <div className="min-w-0 rounded-xl border p-3">
                         <div className="text-xs text-gray-500">Total</div>
-                        <div className="mt-1 text-sm font-semibold">
+                        <div className="mt-1 break-words text-sm font-semibold [overflow-wrap:anywhere]">
                             {order.totalPrice}
                         </div>
                     </div>
                 </div>
 
                 {/* Customer */}
-                <div className="p-4 border rounded-2xl">
+                <div className="min-w-0 rounded-2xl border p-4">
                     <div className="text-sm font-semibold text-gray-900">
                         Customer
                     </div>
-                    <div className="mt-2 text-sm text-gray-700">
-                        <div>
+                    <div className="mt-2 min-w-0 space-y-1 text-sm text-gray-700">
+                        <div className="break-words [overflow-wrap:anywhere]">
                             <span className="text-gray-500">Name:</span>{" "}
                             {order.customerName || "—"}
                         </div>
-                        <div>
+                        <div className="break-words [overflow-wrap:anywhere]">
                             <span className="text-gray-500">Email:</span>{" "}
                             {order.email || "—"}
                         </div>
-                        <div>
+                        <div className="break-words [overflow-wrap:anywhere]">
                             <span className="text-gray-500">Phone:</span>{" "}
                             {order.phone || "—"}
                         </div>
@@ -75,19 +75,21 @@ export default function OrderDetailsModal({
                 </div>
 
                 {/* Shipping */}
-                <div className="p-4 border rounded-2xl">
+                <div className="min-w-0 rounded-2xl border p-4">
                     <div className="text-sm font-semibold text-gray-900">
                         Shipping
                     </div>
-                    <div className="mt-2 text-sm text-gray-700">
-                        <div>{order.shippingAddress || "—"}</div>
+                    <div className="mt-2 min-w-0 text-sm text-gray-700">
+                        <div className="break-words [overflow-wrap:anywhere]">
+                            {order.shippingAddress || "—"}
+                        </div>
 
                         {order.customerNotes ? (
-                            <div className="p-3 mt-3 text-sm rounded-xl bg-gray-50">
+                            <div className="mt-3 min-w-0 rounded-xl bg-gray-50 p-3 text-sm">
                                 <div className="text-xs font-medium text-gray-700">
                                     Delivery notes
                                 </div>
-                                <div className="mt-1 text-gray-700">
+                                <div className="mt-1 break-words text-gray-700 [overflow-wrap:anywhere]">
                                     {order.customerNotes}
                                 </div>
                             </div>
@@ -96,11 +98,11 @@ export default function OrderDetailsModal({
                 </div>
 
                 {/* Items */}
-                <div className="p-4 border rounded-2xl">
+                <div className="min-w-0 rounded-2xl border p-4">
                     <div className="text-sm font-semibold text-gray-900">
                         Items
                     </div>
-                    <div className="mt-2 text-sm text-gray-700">
+                    <div className="mt-2 break-words text-sm text-gray-700 [overflow-wrap:anywhere]">
                         {order.products || "—"}
                     </div>
                 </div>

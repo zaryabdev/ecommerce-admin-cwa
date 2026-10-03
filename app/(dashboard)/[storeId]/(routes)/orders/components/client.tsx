@@ -5,6 +5,7 @@ import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
 
 import { columns, OrderColumn } from "./columns";
+import { OrderMobileRow } from "./mobile-list";
 
 interface OrderClientProps {
     data: OrderColumn[];
@@ -18,7 +19,12 @@ export const OrderClient: React.FC<OrderClientProps> = ({ data }) => {
                 description="Manage orders for your store"
             />
             <Separator />
-            <DataTable searchKey="trackingId" columns={columns} data={data} />
+            <DataTable
+                searchKey="trackingId"
+                columns={columns}
+                data={data}
+                mobileRow={(order) => <OrderMobileRow order={order} />}
+            />
         </>
     );
 };
