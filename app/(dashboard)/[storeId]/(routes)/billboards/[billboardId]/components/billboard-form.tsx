@@ -133,7 +133,7 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
                 </FormItem>
               )}
             />
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
             <FormField
               control={form.control}
               name="label"
@@ -148,7 +148,7 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
               )}
             />
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
+          <Button disabled={loading} className="w-full sm:ml-auto sm:w-auto" type="submit">
             {action}
           </Button>
         </form>

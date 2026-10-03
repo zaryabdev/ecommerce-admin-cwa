@@ -113,7 +113,7 @@ export const SizeForm: React.FC<SizeFormProps> = ({
       <Separator />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
             <FormField
               control={form.control}
               name="name"
@@ -141,7 +141,7 @@ export const SizeForm: React.FC<SizeFormProps> = ({
               )}
             />
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
+          <Button disabled={loading} className="w-full sm:ml-auto sm:w-auto" type="submit">
             {action}
           </Button>
         </form>

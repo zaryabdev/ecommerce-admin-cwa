@@ -115,7 +115,7 @@ export const ColorForm: React.FC<ColorFormProps> = ({
       <Separator />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
             <FormField
               control={form.control}
               name="name"
@@ -136,10 +136,10 @@ export const ColorForm: React.FC<ColorFormProps> = ({
                 <FormItem>
                   <FormLabel>Value</FormLabel>
                   <FormControl>
-                    <div className="flex items-center gap-x-4">
-                      <Input disabled={loading} placeholder="Color value" {...field} />
+                    <div className="flex min-w-0 items-center gap-x-4">
+                      <Input className="min-w-0" disabled={loading} placeholder="Color value" {...field} />
                       <div 
-                        className="border p-4 rounded-full" 
+                        className="shrink-0 rounded-full border p-4"
                         style={{ backgroundColor: field.value }}
                       />
                     </div>
@@ -149,7 +149,7 @@ export const ColorForm: React.FC<ColorFormProps> = ({
               )}
             />
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
+          <Button disabled={loading} className="w-full sm:ml-auto sm:w-auto" type="submit">
             {action}
           </Button>
         </form>

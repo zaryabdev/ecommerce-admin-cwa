@@ -143,7 +143,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       <Separator />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-3">
             <FormField
               control={form.control}
               name="name"
@@ -165,8 +165,8 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                   <FormLabel>Parent Category</FormLabel>
                   <Select disabled={loading || hasChildren} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value} placeholder="Select a parent category" />
+                      <SelectTrigger className="min-w-0">
+                        <SelectValue className="min-w-0 truncate" defaultValue={field.value} placeholder="Select a parent category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -177,7 +177,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                     </SelectContent>
                   </Select>
                   {hasChildren && (
-                    <FormDescription>
+                    <FormDescription className="break-words">
                       This category has child categories and cannot be moved under another category.
                     </FormDescription>
                   )}
@@ -193,8 +193,8 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                   <FormLabel>Billboard</FormLabel>
                   <Select disabled={loading} onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value} placeholder="Select a billboard" />
+                      <SelectTrigger className="min-w-0">
+                        <SelectValue className="min-w-0 truncate" defaultValue={field.value} placeholder="Select a billboard" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -209,7 +209,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
               )}
             />
           </div>
-          <Button disabled={loading} className="ml-auto" type="submit">
+          <Button disabled={loading} className="w-full sm:ml-auto sm:w-auto" type="submit">
             {action}
           </Button>
         </form>
